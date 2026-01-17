@@ -1,66 +1,549 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ma carte</title>
+  <title>Sans Gluten — Mes restos testés</title>
+  <meta name="description" content="Une sélection de restaurants testés sans gluten. Recommandations, notes, et carte interactive." />
+
+  <!-- Open Graph (partage) -->
+  <meta property="og:title" content="Sans Gluten — Mes restos testés" />
+  <meta property="og:description" content="Des restaurants testés sans gluten, avec une carte interactive." />
+  <meta property="og:type" content="website" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <!-- Police -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
   <style>
-    body { margin: 0; font-family: Inter, sans-serif; background: #f6f7fb; color: #111; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 56px 20px; }
-    .hero { display: grid; gap: 14px; }
-    h1 { font-size: 44px; margin: 0; letter-spacing: -0.02em; }
-    p { margin: 0; font-size: 18px; color: #555; max-width: 720px; line-height: 1.5; }
-
-    .card {
-      margin-top: 28px;
-      background: #fff;
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    :root{
+      --bg: #0b0f19;
+      --panel: rgba(255,255,255,0.08);
+      --panel2: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.66);
+      --border: rgba(255,255,255,0.12);
+      --shadow: 0 20px 60px rgba(0,0,0,0.45);
+      --radius: 18px;
+      --radius2: 14px;
+      --max: 1120px;
     }
 
-    .card h2 { margin: 0 0 10px 0; font-size: 18px; }
-    #map { height: 520px; border-radius: 14px; overflow: hidden; }
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(99,102,241,0.35), transparent 60%),
+        radial-gradient(900px 500px at 85% 10%, rgba(16,185,129,0.25), transparent 55%),
+        radial-gradient(1000px 800px at 30% 120%, rgba(244,63,94,0.18), transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+    }
 
-    .footer { text-align: center; padding: 28px 16px; color: #888; font-size: 14px; }
+    a{ color: inherit; text-decoration: none; }
+    .wrap{ max-width: var(--max); margin: 0 auto; padding: 22px 18px 70px; }
+
+    /* Top bar */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 10px 6px; gap: 12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap: 10px; font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .logo{
+      width: 34px; height: 34px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      box-shadow: 0 10px 30px rgba(99,102,241,0.25);
+    }
+    .nav{
+      display:flex; gap: 12px; align-items:center; flex-wrap: wrap;
+      color: var(--muted); font-weight: 500; font-size: 14px;
+    }
+    .nav a{ padding: 8px 10px; border-radius: 999px; }
+    .nav a:hover{ background: rgba(255,255,255,0.06); color: var(--text); }
+
+    /* Hero */
+    .hero{
+      margin-top: 26px;
+      display:grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .heroMain{ padding: 26px; position: relative; overflow: hidden; }
+    .heroMain:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(500px 240px at 20% 10%, rgba(99,102,241,0.32), transparent 60%);
+      opacity:0.9; pointer-events:none;
+    }
+    .heroMain > *{ position: relative; }
+    h1{
+      margin: 0 0 10px;
+      font-size: clamp(34px, 4vw, 52px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+    .sub{
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16.5px;
+      line-height: 1.5;
+      max-width: 62ch;
+    }
+    .ctaRow{
+      display:flex; gap: 10px; flex-wrap: wrap; align-items:center;
+      margin-top: 18px;
+    }
+    .btn{
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 14px;
+      display:inline-flex;
+      gap: 10px;
+      align-items:center;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      border: 0;
+      box-shadow: 0 14px 40px rgba(99,102,241,0.22);
+    }
+    .btn:hover{ transform: translateY(-1px); transition: 120ms ease; }
+    .pillRow{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .pill{
+      font-size: 12px; color: rgba(255,255,255,0.74);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      padding: 7px 10px; border-radius: 999px;
+    }
+
+    .heroSide{ padding: 18px; display:flex; flex-direction: column; gap: 12px; }
+    .mini{
+      padding: 14px;
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: var(--panel2);
+    }
+    .miniTitle{ font-weight: 700; font-size: 14px; margin: 0 0 6px; }
+    .miniText{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    /* Controls */
+    .controls{
+      margin-top: 18px;
+      display:flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .field{
+      flex: 1 1 280px;
+      display:flex; gap: 10px; align-items: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .field input{
+      width: 100%;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .field input::placeholder{ color: rgba(255,255,255,0.48); }
+    .filters{
+      display:flex; gap: 8px; flex-wrap: wrap;
+    }
+    .chip{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.8);
+      padding: 9px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .chip.active{
+      background: rgba(16,185,129,0.18);
+      border-color: rgba(16,185,129,0.35);
+      color: rgba(255,255,255,0.92);
+    }
+
+    /* Content grid */
+    .grid{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    /* Map */
+    .mapCard{ padding: 14px; }
+    #map{
+      height: 520px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+    .mapHeader{
+      display:flex; align-items: baseline; justify-content: space-between;
+      padding: 6px 6px 12px;
+      gap: 10px;
+    }
+    .mapHeader h2{ margin:0; font-size: 15px; letter-spacing: -0.01em; }
+    .hint{ margin:0; color: var(--muted); font-size: 12.5px; }
+
+    /* List */
+    .listCard{ padding: 14px; }
+    .listHeader{ padding: 6px 6px 10px; display:flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .listHeader h2{ margin:0; font-size: 15px; }
+    .count{ color: var(--muted); font-size: 12.5px; }
+    .items{ display:flex; flex-direction: column; gap: 10px; }
+
+    .item{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 14px;
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      cursor:pointer;
+    }
+    .item:hover{ background: rgba(255,255,255,0.07); }
+    .itemTitle{ margin: 0 0 6px; font-weight: 700; letter-spacing: -0.01em; }
+    .meta{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .tags{ display:flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .tag{
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.16);
+      color: rgba(255,255,255,0.75);
+    }
+    .score{
+      font-weight: 800;
+      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      height: fit-content;
+    }
+
+    /* Footer */
+    .footer{
+      margin-top: 24px;
+      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 10px 6px;
+    }
+    .footer a{ text-decoration: underline; text-underline-offset: 3px; }
+
+    /* Responsive */
+    @media (max-width: 960px){
+      .hero{ grid-template-columns: 1fr; }
+      .grid{ grid-template-columns: 1fr; }
+      #map{ height: 460px; }
+    }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="hero">
-      <h1>My Coeliac Map</h1>
-      <p>Site gratuit, design propre, carte intégrée avec OpenStreetMap + Leaflet.</p>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>Sans Gluten</div>
+      </div>
+      <div class="nav">
+        <a href="#restos">Restaurants</a>
+        <a href="#carte">Carte</a>
+        <a href="#suggestion">Suggérer</a>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>Localisation</h2>
-      <div id="map"></div>
+    <section class="hero">
+      <div class="card heroMain">
+        <h1>Des restaurants testés<br/>sans gluten, en toute confiance.</h1>
+        <p class="sub">
+          Je partage une sélection courte, honnête et utile de restos où j’ai mangé (vraiment) sans gluten.
+          Carte interactive, tags, notes, et recommandations claires.
+        </p>
+
+        <div class="ctaRow">
+          <a class="btn primary" href="#restos">Découvrir le 1er resto</a>
+          <a class="btn" href="#suggestion">Suggérer un resto</a>
+        </div>
+
+        <div class="pillRow">
+          <div class="pill">100% gratuit</div>
+          <div class="pill">OpenStreetMap</div>
+          <div class="pill">Sélection curée</div>
+          <div class="pill">Transparence</div>
+        </div>
+      </div>
+
+      <div class="card heroSide">
+        <div class="mini">
+          <p class="miniTitle">Principe</p>
+          <p class="miniText">Uniquement des endroits testés. Pas d’annuaire géant, juste du fiable.</p>
+        </div>
+        <div class="mini">
+          <p class="miniTitle">Ce que tu ajoutes</p>
+          <p class="miniText">Adresse, note, tags (dédié GF, brunch, takeout…), et ton commentaire.</p>
+        </div>
+        <div class="mini">
+          <p class="miniTitle">Objectif</p>
+          <p class="miniText">Que les gens puissent choisir vite, sans stress, et éviter les mauvaises surprises.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls" id="restos" style="scroll-margin-top: 20px;">
+      <div class="field" title="Recherche">
+        <span style="opacity:.7;">🔎</span>
+        <input id="search" placeholder="Rechercher un resto, un quartier, un tag…" />
+      </div>
+
+      <div class="filters" aria-label="Filtres">
+        <div class="chip" data-filter="dedicated_gf">Dédié sans gluten</div>
+        <div class="chip" data-filter="brunch">Brunch</div>
+        <div class="chip" data-filter="takeout">Takeout</div>
+        <div class="chip" data-filter="pizza">Pizza</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card listCard">
+        <div class="listHeader">
+          <h2>Restaurants testés</h2>
+          <div class="count" id="count">—</div>
+        </div>
+        <div class="items" id="items"></div>
+      </div>
+
+      <div class="card mapCard" id="carte" style="scroll-margin-top: 20px;">
+        <div class="mapHeader">
+          <h2>Carte</h2>
+          <p class="hint">Clique un resto pour le centrer sur la carte.</p>
+        </div>
+        <div id="map"></div>
+      </div>
+    </section>
+
+    <section class="card" id="suggestion" style="margin-top: 18px; padding: 18px; scroll-margin-top: 20px;">
+      <h2 style="margin: 6px 6px 10px; font-size: 15px;">Suggérer un restaurant</h2>
+      <p style="margin: 0 6px 14px; color: rgba(255,255,255,0.66); font-size: 13px; line-height: 1.5;">
+        Pour rester gratuit et simple, ce bouton ouvre un email pré-rempli. (Plus tard, tu pourras ajouter un vrai formulaire.)
+      </p>
+      <a class="btn primary" id="mailLink" href="#">📩 Envoyer une suggestion</a>
+    </section>
+
+    <div class="footer">
+      <div>Construit gratuitement avec GitHub Pages + OpenStreetMap.</div>
+      <div><a href="#restos">Retour en haut</a></div>
     </div>
   </div>
 
-  <div class="footer">© 2026 — Mon projet</div>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([45.5017, -73.5673], 12);
+    // 1) Ton "mini-database" (tu ajouteras des restos ici)
+    const restaurants = [
+      {
+        id: "resto-1",
+        name: "Restaurant #1 (à remplacer)",
+        city: "Montréal",
+        neighborhood: "Centre-ville",
+        address: "Adresse à remplacer",
+        lat: 45.5017,
+        lon: -73.5673,
+        score: 9.2,
+        note: "Très bon accueil, options sans gluten claires, service rassurant. Remplace ce texte par ton avis.",
+        tags: ["dedicated_gf", "takeout"],
+        price: "$$",
+        website: "" // optionnel: "https://..."
+      }
+    ];
 
+    // 2) Carte
+    const map = L.map('map', { scrollWheelZoom: true }).setView([45.5017, -73.5673], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    L.marker([45.5017, -73.5673])
-      .addTo(map)
-      .bindPopup('Mon emplacement');
+    const markers = new Map();
+
+    function tagLabel(t){
+      const dict = {
+        dedicated_gf: "Dédié GF",
+        brunch: "Brunch",
+        takeout: "Takeout",
+        pizza: "Pizza"
+      };
+      return dict[t] || t;
+    }
+
+    function render(list){
+      const items = document.getElementById("items");
+      items.innerHTML = "";
+
+      document.getElementById("count").textContent =
+        list.length + (list.length > 1 ? " restos" : " resto");
+
+      // Clear markers then re-add filtered markers
+      markers.forEach(m => map.removeLayer(m));
+      markers.clear();
+
+      list.forEach(r => {
+        const el = document.createElement("div");
+        el.className = "item";
+        el.tabIndex = 0;
+
+        const left = document.createElement("div");
+        const title = document.createElement("p");
+        title.className = "itemTitle";
+        title.textContent = r.name;
+
+        const meta = document.createElement("p");
+        meta.className = "meta";
+        meta.textContent = `${r.city} • ${r.neighborhood} • ${r.price} • ${r.address}`;
+
+        const note = document.createElement("p");
+        note.className = "meta";
+        note.style.marginTop = "8px";
+        note.textContent = r.note;
+
+        const tags = document.createElement("div");
+        tags.className = "tags";
+        r.tags.forEach(t => {
+          const tg = document.createElement("div");
+          tg.className = "tag";
+          tg.textContent = tagLabel(t);
+          tags.appendChild(tg);
+        });
+
+        left.appendChild(title);
+        left.appendChild(meta);
+        left.appendChild(note);
+        left.appendChild(tags);
+
+        const score = document.createElement("div");
+        score.className = "score";
+        score.textContent = r.score.toFixed(1);
+
+        el.appendChild(left);
+        el.appendChild(score);
+
+        const focus = () => {
+          map.setView([r.lat, r.lon], 14, { animate: true });
+          const m = markers.get(r.id);
+          if (m) m.openPopup();
+        };
+
+        el.addEventListener("click", focus);
+        el.addEventListener("keydown", (e) => { if (e.key === "Enter") focus(); });
+
+        items.appendChild(el);
+
+        const popupHtml = `
+          <div style="font-family: Inter, Arial; min-width: 220px;">
+            <div style="font-weight: 800; margin-bottom: 4px;">${r.name}</div>
+            <div style="opacity:.8; font-size: 12.5px; margin-bottom: 8px;">
+              ${r.city} • ${r.neighborhood} • ${r.price}
+            </div>
+            <div style="font-size: 12.5px; margin-bottom: 10px;">${r.address}</div>
+            <div style="font-size: 12.5px; opacity:.9;">⭐ ${r.score.toFixed(1)} • ${r.tags.map(tagLabel).join(" · ")}</div>
+          </div>
+        `;
+
+        const marker = L.marker([r.lat, r.lon]).addTo(map).bindPopup(popupHtml);
+        markers.set(r.id, marker);
+      });
+
+      if (list.length === 1){
+        map.setView([list[0].lat, list[0].lon], 13);
+      }
+    }
+
+    // 3) Recherche + filtres
+    const activeFilters = new Set();
+
+    function applyFilters(){
+      const q = document.getElementById("search").value.trim().toLowerCase();
+
+      const filtered = restaurants.filter(r => {
+        const hay = [
+          r.name, r.city, r.neighborhood, r.address, r.note,
+          ...(r.tags || [])
+        ].join(" ").toLowerCase();
+
+        const matchQ = !q || hay.includes(q);
+
+        const matchFilters = activeFilters.size === 0
+          ? true
+          : [...activeFilters].every(f => (r.tags || []).includes(f));
+
+        return matchQ && matchFilters;
+      });
+
+      render(filtered);
+    }
+
+    document.getElementById("search").addEventListener("input", applyFilters);
+
+    document.querySelectorAll(".chip").forEach(ch => {
+      ch.addEventListener("click", () => {
+        const f = ch.dataset.filter;
+        if (activeFilters.has(f)) {
+          activeFilters.delete(f);
+          ch.classList.remove("active");
+        } else {
+          activeFilters.add(f);
+          ch.classList.add("active");
+        }
+        applyFilters();
+      });
+    });
+
+    // 4) Bouton suggestion (email pré-rempli)
+    const mailTo = "mailto:tonemail@example.com"
+      + "?subject=" + encodeURIComponent("Suggestion de resto sans gluten")
+      + "&body=" + encodeURIComponent(
+        "Nom du restaurant:\nAdresse:\nVille:\nPourquoi c'est bien pour sans gluten:\nLien (optionnel):\n"
+      );
+    document.getElementById("mailLink").setAttribute("href", mailTo);
+
+    // First render
+    render(restaurants);
   </script>
 </body>
 </html>
