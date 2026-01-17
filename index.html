@@ -1,32 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Mon site avec map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ma carte</title>
 
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
+  <!-- Police -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #map { height: 500px; border-radius: 12px; }
+    body { margin: 0; font-family: Inter, sans-serif; background: #f6f7fb; color: #111; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 56px 20px; }
+    .hero { display: grid; gap: 14px; }
+    h1 { font-size: 44px; margin: 0; letter-spacing: -0.02em; }
+    p { margin: 0; font-size: 18px; color: #555; max-width: 720px; line-height: 1.5; }
+
+    .card {
+      margin-top: 28px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    }
+
+    .card h2 { margin: 0 0 10px 0; font-size: 18px; }
+    #map { height: 520px; border-radius: 14px; overflow: hidden; }
+
+    .footer { text-align: center; padding: 28px 16px; color: #888; font-size: 14px; }
   </style>
 </head>
 
 <body>
-  <h1>Bienvenue</h1>
-  <p>Voici ma carte interactive.</p>
+  <div class="container">
+    <div class="hero">
+      <h1>My Coeliac Map</h1>
+      <p>Site gratuit, design propre, carte intégrée avec OpenStreetMap + Leaflet.</p>
+    </div>
 
-  <div id="map"></div>
+    <div class="card">
+      <h2>Localisation</h2>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <div class="footer">© 2026 — Mon projet</div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([45.5017, -73.5673], 12); // Montréal
+    const map = L.map('map').setView([45.5017, -73.5673], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    L.marker([45.5017, -73.5673]).addTo(map).bindPopup('Mon point');
+    L.marker([45.5017, -73.5673])
+      .addTo(map)
+      .bindPopup('Mon emplacement');
   </script>
 </body>
 </html>
