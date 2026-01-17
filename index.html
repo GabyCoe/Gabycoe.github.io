@@ -339,6 +339,9 @@
         <div class="chip" data-filter="brunch">Brunch</div>
         <div class="chip" data-filter="takeout">Takeout</div>
         <div class="chip" data-filter="pizza">Pizza</div>
+        <div class="chip" data-filter="vegan">Vegan</div>
+        <div class="chip" data-filter="wifi">Wi-Fi</div>
+        <div class="chip" data-filter="happy_hour">Happy hour</div>
       </div>
     </section>
 
@@ -376,26 +379,28 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // 1) Ton "mini-database" (tu ajouteras des restos ici)
+    // 1) Mini-database (ajoute tes restos ici)
     const restaurants = [
       {
-         id: "arepera-du-plateau",
-         name: "Arepera du Plateau",
-         city: "Montréal",
-          neighborhood: "Plateau-Mont-Royal",
-      address: "73 Rue Prince-Arthur E, Montréal, QC H2X 1B4",
-  lat: 45.514775,
-  lon: -73.571903,
-  score: 9.0,
-  note: "Cuisine vénézuélienne décontractée (vegan et viande), avec options sans gluten. Ambiance très colorée, Wi-Fi, et happy hour food.",
-  tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
-  price: "$$",
-  website: "https://www.arepera.ca/"
+        id: "arepera-du-plateau",
+        name: "Arepera du Plateau",
+        city: "Montréal",
+        neighborhood: "Plateau-Mont-Royal",
+        address: "73 Rue Prince-Arthur E, Montréal, QC H2X 1B4",
+        lat: 45.514775,
+        lon: -73.571903,
+        score: 9.0,
+        note: "Cuisine vénézuélienne décontractée (vegan et viande), avec options sans gluten. Ambiance très colorée, Wi-Fi, et happy hour food.",
+        tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
+        price: "$$",
+        website: "https://www.arepera.ca/"
       }
     ];
 
-    // 2) Carte
-    const map = L.map('map', { scrollWheelZoom: true }).setView([45.5017, -73.5673], 12);
+    // 2) Carte — FIX: démarre sur le 1er resto
+    const map = L.map('map', { scrollWheelZoom: true })
+      .setView([restaurants[0].lat, restaurants[0].lon], 13);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
@@ -407,7 +412,10 @@
         dedicated_gf: "Dédié GF",
         brunch: "Brunch",
         takeout: "Takeout",
-        pizza: "Pizza"
+        pizza: "Pizza",
+        vegan: "Vegan",
+        wifi: "Wi-Fi",
+        happy_hour: "Happy hour"
       };
       return dict[t] || t;
     }
@@ -429,6 +437,7 @@
         el.tabIndex = 0;
 
         const left = document.createElement("div");
+
         const title = document.createElement("p");
         title.className = "itemTitle";
         title.textContent = r.name;
@@ -444,7 +453,7 @@
 
         const tags = document.createElement("div");
         tags.className = "tags";
-        r.tags.forEach(t => {
+        (r.tags || []).forEach(t => {
           const tg = document.createElement("div");
           tg.className = "tag";
           tg.textContent = tagLabel(t);
@@ -481,7 +490,7 @@
               ${r.city} • ${r.neighborhood} • ${r.price}
             </div>
             <div style="font-size: 12.5px; margin-bottom: 10px;">${r.address}</div>
-            <div style="font-size: 12.5px; opacity:.9;">⭐ ${r.score.toFixed(1)} • ${r.tags.map(tagLabel).join(" · ")}</div>
+            <div style="font-size: 12.5px; opacity:.9;">⭐ ${r.score.toFixed(1)} • ${(r.tags || []).map(tagLabel).join(" · ")}</div>
           </div>
         `;
 
@@ -489,6 +498,7 @@
         markers.set(r.id, marker);
       });
 
+      // Si un seul resto affiché, recadrer la map
       if (list.length === 1){
         map.setView([list[0].lat, list[0].lon], 13);
       }
@@ -534,8 +544,8 @@
       });
     });
 
-    // 4) Bouton suggestion (email pré-rempli)
-    const mailTo = "mailto:tonemail@example.com"
+    // 4) Bouton suggestion (email pré-rempli) — remplace par ton email
+    const mailTo = "mailto:TONEMAIL@exemple.com"
       + "?subject=" + encodeURIComponent("Suggestion de resto sans gluten")
       + "&body=" + encodeURIComponent(
         "Nom du restaurant:\nAdresse:\nVille:\nPourquoi c'est bien pour sans gluten:\nLien (optionnel):\n"
