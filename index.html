@@ -57,11 +57,9 @@
       width: 34px; height: 34px; border-radius: 12px;
       background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
       box-shadow: 0 10px 30px rgba(99,102,241,0.25);
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       font-weight: 900;
       font-size: 18px;
       color: rgba(255,255,255,0.95);
@@ -133,6 +131,7 @@
       box-shadow: 0 14px 40px rgba(99,102,241,0.22);
     }
     .btn:hover{ transform: translateY(-1px); transition: 120ms ease; }
+
     .pillRow{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
     .pill{
       font-size: 12px; color: rgba(255,255,255,0.74);
@@ -177,9 +176,7 @@
     }
     .field input::placeholder{ color: rgba(255,255,255,0.48); }
 
-    .filters{
-      display:flex; gap: 8px; flex-wrap: wrap;
-    }
+    .filters{ display:flex; gap: 8px; flex-wrap: wrap; }
     .chip{
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.04);
@@ -213,13 +210,6 @@
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.14);
     }
-    .mapHeader{
-      display:flex; align-items: baseline; justify-content: space-between;
-      padding: 6px 6px 12px;
-      gap: 10px;
-    }
-    .mapHeader h2{ margin:0; font-size: 15px; letter-spacing: -0.01em; }
-    .hint{ margin:0; color: var(--muted); font-size: 12.5px; }
 
     /* List */
     .listCard{ padding: 14px; }
@@ -272,24 +262,68 @@
       display: block;
     }
 
-    /* Footer */
-    .footer{
-      margin-top: 24px;
-      color: rgba(255,255,255,0.5);
-      font-size: 13px;
+    /* “Page 2” : fiche resto (overlay) */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(10px);
+      display: none;
+      z-index: 9999;
+      padding: 18px;
+    }
+    .overlay.show{ display: grid; place-items: center; }
+    .detail{
+      width: min(820px, 100%);
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(12,16,28,0.82);
+      box-shadow: 0 30px 90px rgba(0,0,0,0.55);
+      overflow: hidden;
+    }
+    .detailTop{
+      padding: 16px 16px 0;
       display:flex;
       justify-content: space-between;
+      align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
-      padding: 10px 6px;
     }
-    .footer a{ text-decoration: underline; text-underline-offset: 3px; }
+    .detailBody{ padding: 16px; }
+    .detailImg{
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      display:block;
+    }
+    .detailTitle{
+      margin: 0;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+    .detailMeta{ margin: 8px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+    .detailNote{ margin: 14px 0 0; font-size: 14.5px; line-height: 1.55; }
+    .detailActions{ margin-top: 14px; display:flex; gap: 10px; flex-wrap: wrap; }
+    .btn.small{ padding: 10px 12px; border-radius: 12px; font-size: 13px; }
+    .xbtn{
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 800;
+    }
 
     /* Responsive */
     @media (max-width: 960px){
       .hero{ grid-template-columns: 1fr; }
       .grid{ grid-template-columns: 1fr; }
       #map{ height: 460px; }
+      .detailImg{ height: 220px; }
     }
   </style>
 </head>
@@ -390,9 +424,9 @@
         </div>
 
         <div class="card mapCard" id="carte" style="scroll-margin-top: 20px;">
-          <div class="mapHeader">
-            <h2>Carte</h2>
-            <p class="hint">Clique un resto pour le centrer sur la carte.</p>
+          <div class="listHeader" style="padding: 6px 6px 10px;">
+            <h2 style="margin:0;font-size:15px;">Carte</h2>
+            <div class="count" style="opacity:.75">Clique un resto</div>
           </div>
           <div id="map"></div>
         </div>
@@ -407,15 +441,37 @@
       <a class="btn primary" id="mailLink" href="#">📩 Envoyer une suggestion</a>
     </section>
 
-    <div class="footer">
+    <div class="footer" style="margin-top: 24px;color: rgba(255,255,255,0.5);font-size: 13px;display:flex;justify-content: space-between;gap: 12px;flex-wrap: wrap;padding: 10px 6px;">
       <div>Construit gratuitement avec GitHub Pages + OpenStreetMap.</div>
-      <div><a href="#restaurants">Retour aux restaurants</a></div>
+      <div><a href="#restaurants" style="text-decoration: underline; text-underline-offset: 3px;">Retour aux restaurants</a></div>
+    </div>
+  </div>
+
+  <!-- Overlay “page 2” -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="detail" role="dialog" aria-modal="true" aria-label="Fiche restaurant">
+      <img id="detailImg" class="detailImg" alt="" style="display:none;">
+      <div class="detailTop">
+        <div>
+          <h3 class="detailTitle" id="detailTitle">—</h3>
+          <p class="detailMeta" id="detailMeta">—</p>
+        </div>
+        <button class="xbtn" id="closeBtn">Retour</button>
+      </div>
+      <div class="detailBody">
+        <div id="detailTags" class="tags" style="margin-top:6px;"></div>
+        <p class="detailNote" id="detailNote">—</p>
+        <div class="detailActions">
+          <a class="btn small" id="gmapsBtn" target="_blank" rel="noopener">🗺️ Itinéraire</a>
+          <a class="btn small" id="websiteBtn" target="_blank" rel="noopener" style="display:none;">🔗 Site</a>
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // 1) Mini-database (ajoute tes restos ici)
+    // MINI DATABASE
     const restaurants = [
       {
         id: "arepera-du-plateau",
@@ -439,12 +495,11 @@
         city: "Montréal",
         neighborhood: "Vieux-Montréal",
         address: "194 Saint-Paul St W, Montreal, Quebec H2Y 1Z9",
-        // Coordonnées à remplacer dès que tu as un lien Google Maps (placeholder Montréal)
         lat: 45.5017,
         lon: -73.5673,
         score: 4.6,
         scoreLabel: "4.6",
-        image: "images/575_Le-marquis-sans-gluten-vieux-montreal-7.jpg"
+        image: "images/575_Le-marquis-sans-gluten-vieux-montreal-7.jpg",
         note: "Parfait pour congeler et se faire de merveilleux petits déjeuner, je recommande à 100% !",
         tags: [],
         price: "$$",
@@ -452,7 +507,7 @@
       }
     ];
 
-    // 2) Carte — démarre sur le 1er resto
+    // MAP
     const map = L.map('map', { scrollWheelZoom: true })
       .setView([restaurants[0].lat, restaurants[0].lon], 13);
 
@@ -475,6 +530,70 @@
       return dict[t] || t;
     }
 
+    // OVERLAY (“page 2”)
+    const overlay = document.getElementById("overlay");
+    const closeBtn = document.getElementById("closeBtn");
+    const detailImg = document.getElementById("detailImg");
+    const detailTitle = document.getElementById("detailTitle");
+    const detailMeta = document.getElementById("detailMeta");
+    const detailNote = document.getElementById("detailNote");
+    const detailTags = document.getElementById("detailTags");
+    const gmapsBtn = document.getElementById("gmapsBtn");
+    const websiteBtn = document.getElementById("websiteBtn");
+
+    function openDetail(r){
+      detailTitle.textContent = r.name;
+      detailMeta.textContent = `${r.city} • ${r.neighborhood} • ${r.price} • ${r.address} • ⭐ ${r.scoreLabel ?? r.score}`;
+      detailNote.textContent = r.note || "";
+
+      // tags
+      detailTags.innerHTML = "";
+      (r.tags || []).forEach(t => {
+        const tg = document.createElement("div");
+        tg.className = "tag";
+        tg.textContent = tagLabel(t);
+        detailTags.appendChild(tg);
+      });
+
+      // image
+      if (r.image){
+        detailImg.style.display = "block";
+        detailImg.src = r.image;
+        detailImg.alt = r.name;
+        detailImg.onerror = () => { detailImg.style.display = "none"; };
+      } else {
+        detailImg.style.display = "none";
+      }
+
+      // buttons
+      const q = encodeURIComponent(r.address || `${r.lat},${r.lon}`);
+      gmapsBtn.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+
+      if (r.website){
+        websiteBtn.style.display = "inline-flex";
+        websiteBtn.href = r.website;
+      } else {
+        websiteBtn.style.display = "none";
+      }
+
+      overlay.classList.add("show");
+      overlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeDetail(){
+      overlay.classList.remove("show");
+      overlay.setAttribute("aria-hidden", "true");
+    }
+
+    closeBtn.addEventListener("click", closeDetail);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeDetail();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && overlay.classList.contains("show")) closeDetail();
+    });
+
+    // RENDER LIST + MARKERS
     function render(list){
       const items = document.getElementById("items");
       items.innerHTML = "";
@@ -482,7 +601,6 @@
       document.getElementById("count").textContent =
         list.length + (list.length > 1 ? " restos" : " resto");
 
-      // Clear markers then re-add filtered markers
       markers.forEach(m => map.removeLayer(m));
       markers.clear();
 
@@ -493,14 +611,13 @@
 
         const left = document.createElement("div");
 
-        // Photo (si elle existe et si le fichier est bon)
         if (r.image) {
           const img = document.createElement("img");
           img.src = r.image;
           img.alt = r.name;
           img.className = "restoImg";
           img.loading = "lazy";
-          img.onerror = () => img.remove(); // évite le “broken image”
+          img.onerror = () => img.remove();
           left.appendChild(img);
         }
 
@@ -515,7 +632,7 @@
         const note = document.createElement("p");
         note.className = "meta";
         note.style.marginTop = "8px";
-        note.textContent = r.note;
+        note.textContent = r.note || "";
 
         const tags = document.createElement("div");
         tags.className = "tags";
@@ -528,7 +645,7 @@
 
         left.appendChild(title);
         left.appendChild(meta);
-        left.appendChild(note);
+        if (r.note) left.appendChild(note);
         if ((r.tags || []).length > 0) left.appendChild(tags);
 
         const score = document.createElement("div");
@@ -544,8 +661,10 @@
           if (m) m.openPopup();
         };
 
-        el.addEventListener("click", focus);
-        el.addEventListener("keydown", (e) => { if (e.key === "Enter") focus(); });
+        const open = () => openDetail(r);
+
+        el.addEventListener("click", () => { focus(); open(); });
+        el.addEventListener("keydown", (e) => { if (e.key === "Enter") { focus(); open(); } });
 
         items.appendChild(el);
 
@@ -561,6 +680,7 @@
         `;
 
         const marker = L.marker([r.lat, r.lon]).addTo(map).bindPopup(popupHtml);
+        marker.on("click", () => openDetail(r));
         markers.set(r.id, marker);
       });
 
@@ -569,7 +689,7 @@
       }
     }
 
-    // 3) Recherche + filtres
+    // SEARCH + FILTERS
     const activeFilters = new Set();
     const citySelect = document.getElementById("cityFilter");
     const neighborhoodSelect = document.getElementById("neighborhoodFilter");
@@ -599,7 +719,6 @@
         ].join(" ").toLowerCase();
 
         const matchQ = !q || hay.includes(q);
-
         const matchFilters = activeFilters.size === 0
           ? true
           : [...activeFilters].every(f => (r.tags || []).includes(f));
@@ -631,7 +750,7 @@
       });
     });
 
-    // 4) Bouton suggestion (email pré-rempli) — remplace par ton email
+    // Suggestion email
     const mailTo = "mailto:TONEMAIL@exemple.com"
       + "?subject=" + encodeURIComponent("Suggestion de resto sans gluten")
       + "&body=" + encodeURIComponent(
@@ -639,7 +758,7 @@
       );
     document.getElementById("mailLink").setAttribute("href", mailTo);
 
-    // Init
+    // INIT
     buildLocationFilters();
     applyFilters();
   </script>
