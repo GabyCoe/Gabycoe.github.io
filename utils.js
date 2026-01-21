@@ -1,4 +1,7 @@
 (function () {
+  // =========================
+  // Labels / dicts
+  // =========================
   const TAG_DICT = {
     dedicated_gf: "Dédié GF",
     brunch: "Brunch",
@@ -21,12 +24,16 @@
     risk: "#ef4444",
   };
 
-  // ---------- URL ----------
+  // =========================
+  // URL
+  // =========================
   function getParam(key) {
     return new URLSearchParams(window.location.search).get(key);
   }
 
-  // ---------- Tags / GF ----------
+  // =========================
+  // Tags / GF
+  // =========================
   function tagLabel(t) {
     return TAG_DICT[t] || t;
   }
@@ -39,7 +46,9 @@
     return GF_COLOR[level] || "#94a3b8";
   }
 
-  // ---------- Favoris ----------
+  // =========================
+  // Favoris
+  // =========================
   const FAV_KEY = "ao_favorites_v1";
 
   function getFavorites() {
@@ -67,7 +76,9 @@
     return s.has(id);
   }
 
-  // ---------- Géoloc (cache) ----------
+  // =========================
+  // Géoloc (cache)
+  // =========================
   const LOC_KEY = "ao_last_location_v1"; // {lat, lon, ts}
 
   function saveLastLocation(lat, lon) {
@@ -84,7 +95,9 @@
     }
   }
 
-  // ---------- Distance ----------
+  // =========================
+  // Distance
+  // =========================
   function haversineKm(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const toRad = (d) => (d * Math.PI) / 180;
@@ -102,27 +115,80 @@
     return `${km.toFixed(km < 10 ? 1 : 0)} km`;
   }
 
-  // ---------- Navigation home (robuste GitHub Pages) ----------
+  // =========================
+  // Navigation home (robuste GitHub Pages)
+  // =========================
   function goHome() {
     // ./index.html marche en racine et en sous-chemin GitHub Pages
     window.location.assign("./index.html");
   }
 
-  // ---------- Expose ----------
+  // =========================
+  // Search utils (recherche "intelligente")
+  // =========================
+  function normalize(str = "") {
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  const SYNONYMS = {
+    gf: ["sans gluten", "gluten free"],
+    gluten: ["sans gluten", "gluten free"],
+    pate: ["pates", "pasta"],
+    pates: ["pasta"],
+    italien: ["pizza", "pates"],
+    pizza: ["italien"],
+    dej: ["brunch", "dejeuner"],
+    brunch: ["dejeuner"],
+    centre: ["centre-ville", "centre ville"],
+    takeout: ["a emporter", "emporter"],
+  };
+
+  function expandQuery(query = "") {
+    const words = normalize(query).split(" ").filter(Boolean);
+    const expanded = new Set(words);
+
+    words.forEach((word) => {
+      const syns = SYNONYMS[word];
+      if (syns && Array.isArray(syns)) {
+        syns.forEach((s) => expanded.add(normalize(s)));
+      }
+    });
+
+    return [...expanded];
+  }
+
+  // =========================
+  // Expose
+  // =========================
   window.AO = {
+    // url / tags
     getParam,
     tagLabel,
     gfLabel,
     gfColor,
+
+    // favorites
     getFavorites,
     saveFavorites,
     isFavorite,
     toggleFavorite,
+
+    // geoloc / distance
     saveLastLocation,
     getLastLocation,
     haversineKm,
     formatDistance,
+
+    // nav
     goHome,
+
+    // search
+    normalize,
+    expandQuery,
   };
 })();
-
