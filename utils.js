@@ -1,115 +1,128 @@
 (function () {
-  const FAV_KEY = "ao_favs_v1";
-  const MAP_STYLE_KEY = "ao_map_style_v1"; // "dark" | "light"
+  const TAG_DICT = {
+    dedicated_gf: "Dédié GF",
+    brunch: "Brunch",
+    takeout: "Takeout",
+    pizza: "Pizza",
+    vegan: "Vegan",
+    wifi: "Wi-Fi",
+    happy_hour: "Happy hour",
+  };
 
-  function getRestaurants() {
-    return (window.RESTAURANTS || []).slice();
+  const GF_LABEL = {
+    dedicated: "Dédié sans gluten",
+    option: "Option sans gluten",
+    risk: "Risque contamination",
+  };
+
+  const GF_COLOR = {
+    dedicated: "#10b981",
+    option: "#f59e0b",
+    risk: "#ef4444",
+  };
+
+  // ---------- URL ----------
+  function getParam(key) {
+    return new URLSearchParams(window.location.search).get(key);
   }
 
-  function byId(id) {
-    return getRestaurants().find(r => r.id === id);
+  // ---------- Tags / GF ----------
+  function tagLabel(t) {
+    return TAG_DICT[t] || t;
   }
 
-  function getParam(name) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
+  function gfLabel(level) {
+    return GF_LABEL[level] || "Sans info";
   }
 
-  function safeText(v) {
-    return (v ?? "").toString();
+  function gfColor(level) {
+    return GF_COLOR[level] || "#94a3b8";
   }
 
-  function clamp(n, a, b) {
-    return Math.max(a, Math.min(b, n));
-  }
+  // ---------- Favoris ----------
+  const FAV_KEY = "ao_favorites_v1";
 
-  function haversineKm(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const toRad = x => (x * Math.PI) / 180;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const A =
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    return 2 * R * Math.asin(Math.sqrt(A));
-  }
-
-  function tagLabel(t){
-    const dict = {
-      dedicated_gf: "Dédié GF",
-      brunch: "Brunch",
-      takeout: "Takeout",
-      pizza: "Pizza",
-      vegan: "Vegan",
-      wifi: "Wi-Fi",
-      happy_hour: "Happy hour"
-    };
-    return dict[t] || t;
-  }
-
-  function gfBadge(r) {
-    const level = r.gf_level || "unknown";
-    if (level === "dedicated") return { label: "🟢 Dédié sans gluten", tone: "good" };
-    if (level === "option") return { label: "🟡 Option sans gluten", tone: "warn" };
-    if (level === "chain") return { label: "🟠 Chaîne (prudence)", tone: "warn" };
-    return { label: "⚪ Infos à confirmer", tone: "neutral" };
-  }
-
-  function disclaimer(r) {
-    const level = r.gf_level || "unknown";
-    if (level === "dedicated") return "";
-    return "⚠️ Ce lieu propose une option sans gluten, mais il peut exister un risque de contamination croisée (selon cuisine/succursale). Si tu es cœliaque, confirme sur place.";
-  }
-
-  // Favorites
-  function loadFavs() {
+  function getFavorites() {
     try {
-      const raw = localStorage.getItem(FAV_KEY);
-      const arr = raw ? JSON.parse(raw) : [];
-      return new Set(Array.isArray(arr) ? arr : []);
+      const v = JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
+      return new Set(Array.isArray(v) ? v : []);
     } catch {
       return new Set();
     }
   }
-  function saveFavs(set) {
-    localStorage.setItem(FAV_KEY, JSON.stringify(Array.from(set)));
+
+  function saveFavorites(set) {
+    localStorage.setItem(FAV_KEY, JSON.stringify([...set]));
   }
-  function isFav(id) {
-    return loadFavs().has(id);
+
+  function isFavorite(id) {
+    return getFavorites().has(id);
   }
-  function toggleFav(id) {
-    const s = loadFavs();
+
+  function toggleFavorite(id) {
+    const s = getFavorites();
     if (s.has(id)) s.delete(id);
     else s.add(id);
-    saveFavs(s);
+    saveFavorites(s);
     return s.has(id);
   }
 
-  // Map style
-  function getMapStyle() {
-    const v = localStorage.getItem(MAP_STYLE_KEY);
-    return (v === "light" || v === "dark") ? v : "dark";
-  }
-  function setMapStyle(v) {
-    localStorage.setItem(MAP_STYLE_KEY, v);
+  // ---------- Géoloc (cache) ----------
+  const LOC_KEY = "ao_last_location_v1"; // {lat, lon, ts}
+
+  function saveLastLocation(lat, lon) {
+    localStorage.setItem(LOC_KEY, JSON.stringify({ lat, lon, ts: Date.now() }));
   }
 
-  // Expose
+  function getLastLocation() {
+    try {
+      const v = JSON.parse(localStorage.getItem(LOC_KEY) || "null");
+      if (!v || typeof v.lat !== "number" || typeof v.lon !== "number") return null;
+      return v;
+    } catch {
+      return null;
+    }
+  }
+
+  // ---------- Distance ----------
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const toRad = (d) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  function formatDistance(km) {
+    if (km == null || !isFinite(km)) return "";
+    if (km < 1) return `${Math.round(km * 1000)} m`;
+    return `${km.toFixed(km < 10 ? 1 : 0)} km`;
+  }
+
+  // ---------- Navigation home (robuste GitHub Pages) ----------
+  function goHome() {
+    // ./index.html marche en racine et en sous-chemin GitHub Pages
+    window.location.assign("./index.html");
+  }
+
+  // ---------- Expose ----------
   window.AO = {
-    getRestaurants,
-    byId,
     getParam,
-    safeText,
-    clamp,
-    haversineKm,
     tagLabel,
-    gfBadge,
-    disclaimer,
-    loadFavs,
-    isFav,
-    toggleFav,
-    getMapStyle,
-    setMapStyle
+    gfLabel,
+    gfColor,
+    getFavorites,
+    saveFavorites,
+    isFavorite,
+    toggleFavorite,
+    saveLastLocation,
+    getLastLocation,
+    haversineKm,
+    formatDistance,
+    goHome,
   };
 })();
+
