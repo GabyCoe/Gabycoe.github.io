@@ -1,1 +1,318 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Restaurant — AddictOCéliaque</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #0b0f19;
+      --panel: rgba(255,255,255,0.08);
+      --panel2: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.66);
+      --border: rgba(255,255,255,0.12);
+      --shadow: 0 20px 60px rgba(0,0,0,0.45);
+      --radius: 18px;
+      --radius2: 14px;
+      --max: 980px;
+    }
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(99,102,241,0.35), transparent 60%),
+        radial-gradient(900px 500px at 85% 10%, rgba(16,185,129,0.25), transparent 55%),
+        radial-gradient(1000px 800px at 30% 120%, rgba(244,63,94,0.18), transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+    }
+    a{ color: inherit; text-decoration: none; }
+    .wrap{ max-width: var(--max); margin: 0 auto; padding: 22px 18px 70px; }
+
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 10px 6px; gap: 12px;
+    }
+    .brand{ display:flex; align-items:center; gap: 10px; font-weight: 900; letter-spacing: -0.02em; }
+    .logo{
+      width: 34px; height: 34px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      box-shadow: 0 10px 30px rgba(99,102,241,0.25);
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 900; font-size: 18px;
+      color: rgba(255,255,255,0.95);
+    }
+
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .detail{
+      margin-top: 18px;
+      overflow: hidden;
+    }
+    .detailImg{
+      width:100%;
+      height: 320px;
+      object-fit: cover;
+      display:block;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+    .detailBody{ padding: 16px; }
+    .title{ margin:0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em; }
+    .meta{ margin: 10px 0 0; color: var(--muted); line-height: 1.5; }
+
+    .tags{ display:flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .tag{
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.16);
+      color: rgba(255,255,255,0.75);
+    }
+
+    .note{ margin: 14px 0 0; line-height: 1.6; }
+    .actions{ margin-top: 14px; display:flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn{
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-weight: 800;
+      font-size: 14px;
+      display:inline-flex;
+      gap: 10px;
+      align-items:center;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      border: 0;
+      box-shadow: 0 14px 40px rgba(99,102,241,0.22);
+    }
+    .row{
+      margin-top: 14px;
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+      justify-content: space-between;
+    }
+    select{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 12px;
+      outline: none;
+      min-width: 260px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">C</div>
+        <div>AddictOCéliaque</div>
+      </div>
+      <a class="btn" href="./index.html">← Retour à la carte</a>
+    </div>
+
+    <div class="card detail">
+      <img id="img" class="detailImg" alt="" style="display:none;">
+      <div class="detailBody">
+        <h1 class="title" id="title">—</h1>
+        <p class="meta" id="meta">—</p>
+
+        <div class="tags" id="tags"></div>
+
+        <p class="note" id="note">—</p>
+
+        <div class="actions">
+          <a class="btn primary" id="gmaps" target="_blank" rel="noopener">🗺️ Itinéraire</a>
+          <a class="btn" id="website" target="_blank" rel="noopener" style="display:none;">🔗 Site</a>
+        </div>
+
+        <div class="row">
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn" id="prev">← Précédent</button>
+            <button class="btn" id="next">Suivant →</button>
+          </div>
+          <div>
+            <select id="picker" aria-label="Choisir un restaurant"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const restaurants = [
+      {
+        id: "arepera-du-plateau",
+        name: "Arepera du Plateau",
+        city: "Montréal",
+        neighborhood: "Plateau-Mont-Royal",
+        address: "73 Rue Prince-Arthur E, Montréal, QC H2X 1B4",
+        lat: 45.514775,
+        lon: -73.571903,
+        score: 9.0,
+        scoreLabel: "9.0",
+        image: "images/arepera83.jpg",
+        note: "Je recommande à 100% pour la nourriture, juste un tout petit peu cher.",
+        tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
+        price: "$$$",
+        website: "https://www.arepera.ca/"
+      },
+      {
+        id: "le-marquis-signature-sante",
+        name: "Le Marquis Signature santé",
+        city: "Montréal",
+        neighborhood: "Vieux-Montréal",
+        address: "194 Saint-Paul St W, Montreal, Quebec H2Y 1Z9",
+        lat: 45.5017,
+        lon: -73.5673,
+        score: 4.6,
+        scoreLabel: "4.6",
+        image: "images/575_Le-marquis-sans-gluten-vieux-montreal-7.jpg",
+        note: "Parfait pour congeler et se faire de merveilleux petits déjeuner, je recommande à 100% !",
+        tags: [],
+        price: "$$",
+        website: ""
+      },
+      {
+        id: "bellucci-italia-complexe-desjardins",
+        name: "Bellucci Italia",
+        city: "Montréal",
+        neighborhood: "Centre-ville",
+        address: "200 Rue Sainte-Catherine O, Montréal, QC H5B 1B2 (Complexe Desjardins)",
+        lat: 45.0,
+        lon: -73.0,
+        score: 7.8,
+        scoreLabel: "7.8",
+        image: "images/caption.jpg",
+        note: "Pâtes fines et bien cuites. On a pris la “fromage” (moins garnie que prévu). Option sans gluten dispo.",
+        tags: ["takeout"],
+        price: "$$",
+        website: "https://bellucciitalia.com/"
+      },
+      {
+        id: "dominos-pizza-gf",
+        name: "Domino’s Pizza",
+        city: "Montréal",
+        neighborhood: "",
+        address: "Montréal (voir succursale)",
+        lat: 45.0,
+        lon: -73.0,
+        score: 8.2,
+        scoreLabel: "8.2",
+        image: "images/dominos-gluten-free-pizza-2021-featured.jpg",
+        note: "Option pâte sans gluten. Très bonne ! (Attention: risque de contamination croisée selon les succursales.)",
+        tags: ["pizza", "takeout"],
+        price: "$",
+        website: "https://www.dominos.ca/"
+      }
+    ];
+
+    function tagLabel(t){
+      const dict = {
+        dedicated_gf: "Dédié GF",
+        brunch: "Brunch",
+        takeout: "Takeout",
+        pizza: "Pizza",
+        vegan: "Vegan",
+        wifi: "Wi-Fi",
+        happy_hour: "Happy hour"
+      };
+      return dict[t] || t;
+    }
+
+    function $(id){ return document.getElementById(id); }
+
+    const qs = new URLSearchParams(location.search);
+    const id = qs.get("id");
+    let idx = restaurants.findIndex(r => r.id === id);
+    if (idx < 0) idx = 0;
+
+    function render(i){
+      const r = restaurants[i];
+      document.title = r.name + " — AddictOCéliaque";
+
+      $("title").textContent = r.name;
+      $("meta").textContent =
+        `${r.city}${r.neighborhood ? " • " + r.neighborhood : ""} • ${r.price} • ${r.address} • ⭐ ${r.scoreLabel ?? r.score}`;
+
+      $("note").textContent = r.note || "";
+
+      $("tags").innerHTML = "";
+      (r.tags || []).forEach(t => {
+        const el = document.createElement("div");
+        el.className = "tag";
+        el.textContent = tagLabel(t);
+        $("tags").appendChild(el);
+      });
+
+      if (r.image){
+        $("img").style.display = "block";
+        $("img").src = r.image;
+        $("img").alt = r.name;
+        $("img").onerror = () => $("img").style.display = "none";
+      } else {
+        $("img").style.display = "none";
+      }
+
+      const q = encodeURIComponent(r.address || `${r.lat},${r.lon}`);
+      $("gmaps").href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+
+      if (r.website){
+        $("website").style.display = "inline-flex";
+        $("website").href = r.website;
+      } else {
+        $("website").style.display = "none";
+      }
+
+      $("picker").value = r.id;
+      history.replaceState(null, "", `restaurant.html?id=${encodeURIComponent(r.id)}`);
+    }
+
+    $("picker").innerHTML = restaurants
+      .map(r => `<option value="${r.id}">${r.name}</option>`)
+      .join("");
+
+    $("picker").addEventListener("change", () => {
+      const newId = $("picker").value;
+      idx = restaurants.findIndex(r => r.id === newId);
+      render(idx);
+    });
+
+    $("prev").addEventListener("click", () => {
+      idx = idx <= 0 ? restaurants.length - 1 : idx - 1;
+      render(idx);
+    });
+
+    $("next").addEventListener("click", () => {
+      idx = idx >= restaurants.length - 1 ? 0 : idx + 1;
+      render(idx);
+    });
+
+    render(idx);
+  </script>
+</body>
+</html>
