@@ -6,10 +6,6 @@
   <title>AddictOCéliaque — Restaurants sans gluten testés</title>
   <meta name="description" content="Restaurants testés sans gluten. Sélection fiable, carte interactive, avis honnêtes." />
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b0f19">
-
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,117 +16,316 @@
 
   <style>
     :root{
-      --bg:#0b0f19; --panel:rgba(255,255,255,0.08); --panel2:rgba(255,255,255,0.06);
-      --text:rgba(255,255,255,0.92); --muted:rgba(255,255,255,0.66);
-      --border:rgba(255,255,255,0.12); --shadow:0 20px 60px rgba(0,0,0,0.45);
-      --radius:18px; --radius2:14px; --max:1120px;
+      --bg: #0b0f19;
+      --panel: rgba(255,255,255,0.08);
+      --panel2: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.66);
+      --border: rgba(255,255,255,0.12);
+      --shadow: 0 20px 60px rgba(0,0,0,0.45);
+      --radius: 18px;
+      --radius2: 14px;
+      --max: 1120px;
     }
-    *{box-sizing:border-box}
+
+    *{ box-sizing: border-box; }
     body{
-      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--text);
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
       background:
         radial-gradient(1200px 600px at 20% -10%, rgba(99,102,241,0.35), transparent 60%),
         radial-gradient(900px 500px at 85% 10%, rgba(16,185,129,0.25), transparent 55%),
         radial-gradient(1000px 800px at 30% 120%, rgba(244,63,94,0.18), transparent 60%),
         var(--bg);
-      min-height:100vh;
+      min-height: 100vh;
     }
-    a{color:inherit; text-decoration:none}
-    .wrap{max-width:var(--max); margin:0 auto; padding:22px 18px 70px}
 
-    .topbar{display:flex; align-items:center; justify-content:space-between; padding:10px 6px; gap:12px}
-    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:-0.02em}
+    a{ color: inherit; text-decoration: none; }
+    .wrap{ max-width: var(--max); margin: 0 auto; padding: 22px 18px 70px; }
+
+    /* Sticky topbar */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 10px 6px; gap: 12px;
+      background: rgba(11,15,25,0.55);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .brand{
+      display:flex; align-items:center; gap: 10px; font-weight: 800;
+      letter-spacing: -0.02em;
+    }
     .logo{
-      width:34px; height:34px; border-radius:12px;
-      background:linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
-      box-shadow:0 10px 30px rgba(99,102,241,0.25);
-      display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px;
+      width: 34px; height: 34px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      box-shadow: 0 10px 30px rgba(99,102,241,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 18px;
+      color: rgba(255,255,255,0.95);
+      letter-spacing: -0.02em;
     }
-    .nav{display:flex; gap:10px; align-items:center; flex-wrap:wrap; color:var(--muted); font-weight:600; font-size:14px}
-    .nav a{padding:8px 10px; border-radius:999px}
-    .nav a:hover{background:rgba(255,255,255,0.06); color:var(--text)}
+    .nav{
+      display:flex; gap: 10px; align-items:center; flex-wrap: wrap;
+      color: var(--muted); font-weight: 600; font-size: 14px;
+    }
+    .nav a{ padding: 8px 10px; border-radius: 999px; }
+    .nav a:hover{ background: rgba(255,255,255,0.06); color: var(--text); }
 
-    .hero{margin-top:26px; display:grid; grid-template-columns:1.2fr 0.8fr; gap:18px; align-items:stretch}
-    .card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(14px)}
-    .heroMain{padding:26px; position:relative; overflow:hidden}
+    /* Hero */
+    .hero{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .heroMain{ padding: 26px; position: relative; overflow: hidden; }
     .heroMain:before{
-      content:""; position:absolute; inset:-2px;
-      background:radial-gradient(500px 240px at 20% 10%, rgba(99,102,241,0.32), transparent 60%);
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(500px 240px at 20% 10%, rgba(99,102,241,0.32), transparent 60%);
       opacity:0.9; pointer-events:none;
     }
-    .heroMain>*{position:relative}
-    h1{margin:0 0 10px; font-size:clamp(34px,4vw,52px); line-height:1.02; letter-spacing:-0.04em}
-    .sub{margin:0 0 18px; color:var(--muted); font-size:16.5px; line-height:1.5; max-width:62ch}
-    .ctaRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:18px}
+    .heroMain > *{ position: relative; }
+    h1{
+      margin: 0 0 10px;
+      font-size: clamp(34px, 4vw, 52px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+    .sub{
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16.5px;
+      line-height: 1.5;
+      max-width: 62ch;
+    }
+    .ctaRow{
+      display:flex; gap: 10px; flex-wrap: wrap; align-items:center;
+      margin-top: 18px;
+    }
     .btn{
-      padding:12px 14px; border-radius:12px; border:1px solid var(--border);
-      background:rgba(255,255,255,0.06); color:var(--text); font-weight:700; font-size:14px;
-      display:inline-flex; gap:10px; align-items:center; cursor:pointer;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-weight: 800;
+      font-size: 14px;
+      display:inline-flex;
+      gap: 10px;
+      align-items:center;
+      cursor:pointer;
+      transition: transform 120ms ease, opacity 120ms ease;
     }
-    .btn.primary{background:linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1)); border:0; box-shadow:0 14px 40px rgba(99,102,241,0.22)}
-    .btn:hover{transform:translateY(-1px); transition:120ms ease}
-    .pillRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px}
-    .pill{font-size:12px; color:rgba(255,255,255,0.74); border:1px solid var(--border); background:rgba(0,0,0,0.18); padding:7px 10px; border-radius:999px}
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      border: 0;
+      box-shadow: 0 14px 40px rgba(99,102,241,0.22);
+    }
+    .btn:hover{ transform: translateY(-1px); }
+    .btn:active{ transform: translateY(1px); }
 
-    .heroSide{padding:18px; display:flex; flex-direction:column; gap:12px}
-    .mini{padding:14px; border-radius:var(--radius2); border:1px solid var(--border); background:var(--panel2)}
-    .miniTitle{font-weight:800; font-size:14px; margin:0 0 6px}
-    .miniText{margin:0; color:var(--muted); font-size:13px; line-height:1.45}
+    .pillRow{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .pill{
+      font-size: 12px; color: rgba(255,255,255,0.74);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      padding: 7px 10px; border-radius: 999px;
+    }
 
-    .controls{margin-top:18px; display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .heroSide{ padding: 18px; display:flex; flex-direction: column; gap: 12px; }
+    .mini{
+      padding: 14px;
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      background: var(--panel2);
+    }
+    .miniTitle{ font-weight: 900; font-size: 14px; margin: 0 0 6px; }
+    .miniText{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    /* Controls */
+    .controls{
+      margin-top: 18px;
+      display:flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
     .field{
-      flex:1 1 280px; display:flex; gap:10px; align-items:center;
-      background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:14px; padding:10px 12px;
+      flex: 1 1 280px;
+      display:flex; gap: 10px; align-items: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
     }
-    .field input{width:100%; border:0; outline:none; background:transparent; color:var(--text); font-size:14px}
-    .field input::placeholder{color:rgba(255,255,255,0.48)}
-    .field select{width:100%; background:transparent; border:0; color:white; font-size:14px; outline:none}
+    .field input{
+      width: 100%;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .field input::placeholder{ color: rgba(255,255,255,0.48); }
 
-    .filters{display:flex; gap:8px; flex-wrap:wrap}
+    .filters{ display:flex; gap: 8px; flex-wrap: wrap; }
     .chip{
-      border:1px solid var(--border); background:rgba(255,255,255,0.04);
-      color:rgba(255,255,255,0.8); padding:9px 10px; border-radius:999px; font-size:13px;
-      cursor:pointer; user-select:none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.8);
+      padding: 9px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor:pointer;
+      user-select:none;
+      transition: transform 120ms ease;
     }
-    .chip.active{background:rgba(16,185,129,0.18); border-color:rgba(16,185,129,0.35); color:rgba(255,255,255,0.92)}
+    .chip:hover{ transform: translateY(-1px); }
+    .chip.active{
+      background: rgba(16,185,129,0.18);
+      border-color: rgba(16,185,129,0.35);
+      color: rgba(255,255,255,0.92);
+    }
 
-    .grid{margin-top:18px; display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start}
-    .mapCard{padding:14px}
-    #map{height:520px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.14)}
-    .listCard{padding:14px}
-    .listHeader{padding:6px 6px 10px; display:flex; justify-content:space-between; align-items:baseline; gap:12px}
-    .listHeader h2{margin:0; font-size:15px}
-    .count{color:var(--muted); font-size:12.5px}
-    .items{display:flex; flex-direction:column; gap:10px}
+    /* Content grid */
+    .grid{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    /* Map */
+    .mapCard{ padding: 14px; }
+    #map{
+      height: 520px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+
+    /* List */
+    .listCard{ padding: 14px; }
+    .listHeader{ padding: 6px 6px 10px; display:flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .listHeader h2{ margin:0; font-size: 15px; }
+    .count{ color: var(--muted); font-size: 12.5px; }
+    .items{ display:flex; flex-direction: column; gap: 10px; }
 
     .item{
-      border:1px solid var(--border); background:rgba(255,255,255,0.05);
-      border-radius:16px; padding:14px;
-      display:grid; grid-template-columns:1fr auto; gap:10px; cursor:pointer;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 14px;
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      cursor:pointer;
+      transform-origin: center;
+      transition: transform 140ms ease, background 140ms ease;
     }
-    .item:hover{background:rgba(255,255,255,0.07)}
-    .itemTitle{margin:0 0 6px; font-weight:900; letter-spacing:-0.01em}
-    .meta{margin:0; color:var(--muted); font-size:13px; line-height:1.45}
-    .tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px}
-    .tag{font-size:12px; padding:6px 8px; border-radius:999px; border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.16); color:rgba(255,255,255,0.75)}
-    .restoImg{width:100%; height:170px; object-fit:cover; border-radius:12px; border:1px solid rgba(255,255,255,0.12); margin-bottom:10px; display:block}
-    .score{font-weight:900; font-size:13px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); height:fit-content; white-space:nowrap}
-
-    .badge{
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:12px; padding:6px 8px; border-radius:999px;
-      border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.16);
-      color:rgba(255,255,255,0.78); margin-top:8px;
+    .item:hover{ background: rgba(255,255,255,0.07); transform: scale(1.005); }
+    .itemTitle{ margin: 0 0 6px; font-weight: 900; letter-spacing: -0.01em; }
+    .meta{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .tags{ display:flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .tag{
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.16);
+      color: rgba(255,255,255,0.75);
+      white-space: nowrap;
     }
-    .fav{cursor:pointer; user-select:none}
-    .rowTools{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
-    .smallBtn{padding:10px 12px; border-radius:12px; font-size:13px}
 
+    .scoreCol{ display:flex; flex-direction: column; align-items:flex-end; gap: 8px; }
+    .score{
+      font-weight: 900;
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      height: fit-content;
+      white-space: nowrap;
+    }
+    .dist{
+      font-weight: 800;
+      font-size: 12px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.18);
+      color: rgba(255,255,255,0.78);
+      white-space: nowrap;
+    }
+
+    .favBtn{
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      border-radius: 999px;
+      padding: 8px 10px;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 13px;
+      line-height: 1;
+    }
+    .favBtn.active{
+      background: rgba(244,63,94,0.18);
+      border-color: rgba(244,63,94,0.35);
+    }
+
+    /* Photo */
+    .restoImg{
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    /* GF badge */
+    .gfBadge{
+      display:inline-flex;
+      gap: 8px;
+      align-items:center;
+      border-radius: 999px;
+      padding: 7px 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.18);
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.82);
+      margin-top: 10px;
+      width: fit-content;
+    }
+    .dot{ width: 9px; height: 9px; border-radius: 99px; display:inline-block; }
+
+    /* Responsive */
     @media (max-width: 960px){
-      .hero{grid-template-columns:1fr}
-      .grid{grid-template-columns:1fr}
-      #map{height:460px}
+      .hero{ grid-template-columns: 1fr; }
+      .grid{ grid-template-columns: 1fr; }
+      #map{ height: 460px; }
     }
   </style>
 </head>
@@ -140,12 +335,11 @@
     <div class="topbar">
       <div class="brand">
         <div class="logo">C</div>
-        <div>AddictOCéliaque</div>
+        <a href="./index.html" id="homeLink" style="font-weight:900;">AddictOCéliaque</a>
       </div>
       <div class="nav">
         <a href="#restaurants">Restaurants</a>
         <a href="#carte">Carte</a>
-        <a href="list.html">Liste</a>
         <a href="#suggestion">Suggérer</a>
       </div>
     </div>
@@ -154,13 +348,12 @@
       <div class="card heroMain">
         <h1>Des restaurants testés<br/>sans gluten, en toute confiance.</h1>
         <p class="sub">
-          Sélection courte, honnête et utile de restos testés sans gluten.
-          Carte interactive, filtres, favoris, et “autour de moi”.
+          Une sélection courte, honnête et utile de restos où j’ai mangé (vraiment) sans gluten.
+          Carte interactive, filtres, et avis personnels.
         </p>
 
         <div class="ctaRow">
           <a class="btn primary" href="#restaurants">Voir les restaurants</a>
-          <a class="btn" href="list.html">Voir en liste</a>
           <a class="btn" href="#suggestion">Suggérer un resto</a>
         </div>
 
@@ -178,45 +371,47 @@
           <p class="miniText">Uniquement des endroits testés. Pas d’annuaire géant, juste du fiable.</p>
         </div>
         <div class="mini">
-          <p class="miniTitle">Confiance</p>
-          <p class="miniText">Badge GF (dédié / option / prudence) + disclaimer auto quand nécessaire.</p>
+          <p class="miniTitle">Sécurité GF</p>
+          <p class="miniText">Badge clair : dédié / option / risque de contamination.</p>
         </div>
         <div class="mini">
-          <p class="miniTitle">Clé en main</p>
-          <p class="miniText">Tu ajoutes un resto dans <b>restaurants.js</b>, et tout s’update partout.</p>
+          <p class="miniTitle">Usage réel</p>
+          <p class="miniText">Favoris, distance, et navigation rapide.</p>
         </div>
       </div>
     </section>
 
-    <section id="restaurants" style="scroll-margin-top:20px;">
-      <section class="controls" style="scroll-margin-top:20px;">
+    <!-- SECTION RESTAURANTS -->
+    <section id="restaurants" style="scroll-margin-top: 20px;">
+      <section class="controls" style="scroll-margin-top: 20px;">
         <div class="field" title="Recherche">
           <span style="opacity:.7;">🔎</span>
           <input id="search" placeholder="Rechercher un resto, quartier, tag…" />
         </div>
 
-        <div class="field" style="flex:0 0 200px;">
+        <!-- Ville -->
+        <div class="field" style="flex: 0 0 200px;">
           <span style="opacity:.7;">📍</span>
-          <select id="cityFilter">
+          <select id="cityFilter" style="width:100%; background:transparent; border:0; color: white; font-size:14px; outline:none;">
             <option value="">Toutes les villes</option>
           </select>
         </div>
 
-        <div class="field" style="flex:0 0 240px;">
+        <!-- Quartier -->
+        <div class="field" style="flex: 0 0 240px;">
           <span style="opacity:.7;">🏙️</span>
-          <select id="neighborhoodFilter">
+          <select id="neighborhoodFilter" style="width:100%; background:transparent; border:0; color: white; font-size:14px; outline:none;">
             <option value="">Tous les quartiers</option>
           </select>
         </div>
 
-        <div class="rowTools">
-          <button class="btn smallBtn" id="nearMeBtn" type="button">📍 Autour de moi</button>
-          <button class="btn smallBtn" id="mapStyleBtn" type="button">🗺️ Style carte</button>
-        </div>
-
         <div class="filters" aria-label="Filtres">
-          <div class="chip" data-filter="__favs">Favoris ❤️</div>
-          <div class="chip" data-filter="dedicated_gf">Dédié sans gluten</div>
+          <div class="chip" data-filter="favorites">❤️ Favoris</div>
+          <div class="chip" data-filter="nearby">📍 Autour de moi</div>
+          <div class="chip" data-filter="dedicated">🟢 Dédié GF</div>
+          <div class="chip" data-filter="option">🟡 Option GF</div>
+          <div class="chip" data-filter="risk">🔴 Risque</div>
+
           <div class="chip" data-filter="brunch">Brunch</div>
           <div class="chip" data-filter="takeout">Takeout</div>
           <div class="chip" data-filter="pizza">Pizza</div>
@@ -235,63 +430,56 @@
           <div class="items" id="items"></div>
         </div>
 
-        <div class="card mapCard" id="carte" style="scroll-margin-top:20px;">
-          <div class="listHeader" style="padding:6px 6px 10px;">
+        <div class="card mapCard" id="carte" style="scroll-margin-top: 20px;">
+          <div class="listHeader" style="padding: 6px 6px 10px;">
             <h2 style="margin:0;font-size:15px;">Carte</h2>
-            <div class="count" style="opacity:.75">Clique un resto</div>
+            <div class="count" style="opacity:.75">Pins 🟢🟡🔴 selon sécurité GF</div>
           </div>
           <div id="map"></div>
         </div>
       </section>
     </section>
 
-    <section class="card" id="suggestion" style="margin-top:18px; padding:18px; scroll-margin-top:20px;">
-      <h2 style="margin:6px 6px 10px; font-size:15px;">Suggérer un restaurant</h2>
-      <p style="margin:0 6px 14px; color:rgba(255,255,255,0.66); font-size:13px; line-height:1.5;">
-        Le bouton ouvre un email pré-rempli.
+    <section class="card" id="suggestion" style="margin-top: 18px; padding: 18px; scroll-margin-top: 20px;">
+      <h2 style="margin: 6px 6px 10px; font-size: 15px;">Suggérer un restaurant</h2>
+      <p style="margin: 0 6px 14px; color: rgba(255,255,255,0.66); font-size: 13px; line-height: 1.5;">
+        Pour rester gratuit et simple, ce bouton ouvre un email pré-rempli.
       </p>
       <a class="btn primary" id="mailLink" href="#">📩 Envoyer une suggestion</a>
     </section>
 
-    <div class="footer" style="margin-top:24px;color:rgba(255,255,255,0.5);font-size:13px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 6px;">
+    <div class="footer" style="margin-top: 24px;color: rgba(255,255,255,0.5);font-size: 13px;display:flex;justify-content: space-between;gap: 12px;flex-wrap: wrap;padding: 10px 6px;">
       <div>Construit gratuitement avec GitHub Pages + OpenStreetMap.</div>
-      <div><a href="#restaurants" style="text-decoration:underline; text-underline-offset:3px;">Retour aux restaurants</a></div>
+      <div><a href="#restaurants" style="text-decoration: underline; text-underline-offset: 3px;">Retour aux restaurants</a></div>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="restaurants.js"></script>
-  <script src="utils.js"></script>
+  <script src="./restaurants.js"></script>
+  <script src="./utils.js"></script>
+
   <script>
-    const restaurants = AO.getRestaurants();
-
-    // Map
-    const map = L.map('map', { scrollWheelZoom: true })
-      .setView([restaurants[0]?.lat || 45.5019, restaurants[0]?.lon || -73.5674], 13);
-
-    let tile;
-    function setTile(style){
-      if (tile) tile.remove();
-      if (style === "light"){
-        tile = L.tileLayer(
-          "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-          { attribution: "© OpenStreetMap © CARTO" }
-        );
-      } else {
-        tile = L.tileLayer(
-          "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-          { attribution: "© OpenStreetMap © CARTO" }
-        );
-      }
-      tile.addTo(map);
-    }
-    setTile(AO.getMapStyle());
-
-    const markers = new Map();
+    const restaurants = window.RESTAURANTS || [];
     const activeFilters = new Set();
+    let userLoc = AO.getLastLocation(); // {lat, lon}
+
+    // Home link robust
+    document.getElementById("homeLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      AO.goHome();
+    });
+
+    // Suggestion email
+    const mailTo = "mailto:gabriel.leguiader@gmail.com"
+      + "?subject=" + encodeURIComponent("Suggestion de resto sans gluten")
+      + "&body=" + encodeURIComponent(
+        "Nom du restaurant:\nAdresse:\nVille:\nPourquoi c'est bien pour sans gluten:\nLien Google Maps (si possible):\n"
+      );
+    document.getElementById("mailLink").setAttribute("href", mailTo);
+
+    // Build city/neighborhood filters
     const citySelect = document.getElementById("cityFilter");
     const neighborhoodSelect = document.getElementById("neighborhoodFilter");
-    let userPos = null; // {lat, lon}
 
     function buildLocationFilters() {
       const cities = [...new Set(restaurants.map(r => r.city).filter(Boolean))].sort();
@@ -306,19 +494,55 @@
         neighborhoods.map(n => `<option value="${n}">${n}</option>`).join("");
     }
 
-    function goToResto(id){
-      window.location.href = `restaurant.html?id=${encodeURIComponent(id)}`;
+    // Map (style plus moderne)
+    const map = L.map('map', { scrollWheelZoom: true })
+      .setView([restaurants[0]?.lat || 45.505, restaurants[0]?.lon || -73.57], 13);
+
+    // CartoDB Positron (rendu plus "moderne")
+    const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO'
+    }).addTo(map);
+
+    const markers = new Map();
+
+    function markerIcon(level){
+      const c = AO.gfColor(level);
+      return L.divIcon({
+        className: "",
+        html: `<div style="
+          width:18px;height:18px;border-radius:999px;
+          background:${c};
+          border:2px solid rgba(255,255,255,0.85);
+          box-shadow:0 10px 26px rgba(0,0,0,0.35);
+        "></div>`,
+        iconSize: [18,18],
+        iconAnchor: [9,9]
+      });
     }
 
+    // Distance
+    function withDistance(r){
+      if (!userLoc) return { ...r, _km: null };
+      const km = AO.haversineKm(userLoc.lat, userLoc.lon, r.lat, r.lon);
+      return { ...r, _km: km };
+    }
+
+    // Render
     function render(list){
       const items = document.getElementById("items");
       items.innerHTML = "";
-      document.getElementById("count").textContent = list.length + (list.length > 1 ? " restos" : " resto");
 
+      document.getElementById("count").textContent =
+        list.length + (list.length > 1 ? " restos" : " resto");
+
+      // map markers
       markers.forEach(m => map.removeLayer(m));
       markers.clear();
 
-      list.forEach(r => {
+      list.forEach(r0 => {
+        const r = withDistance(r0);
+
+        // Card
         const el = document.createElement("div");
         el.className = "item";
         el.tabIndex = 0;
@@ -341,17 +565,17 @@
 
         const meta = document.createElement("p");
         meta.className = "meta";
-        meta.textContent = `${r.city} • ${r.neighborhood || "—"} • ${r.price || "—"} • ${r.address || ""}`;
-
-        const badge = document.createElement("div");
-        badge.className = "badge";
-        const b = AO.gfBadge(r);
-        badge.textContent = b.label;
+        meta.textContent = `${r.city} • ${r.neighborhood || "—"} • ${r.price || "—"} • ${r.address}`;
 
         const note = document.createElement("p");
         note.className = "meta";
         note.style.marginTop = "8px";
         note.textContent = r.note || "";
+
+        const gf = document.createElement("div");
+        gf.className = "gfBadge";
+        const level = r.gfSafety || "option";
+        gf.innerHTML = `<span class="dot" style="background:${AO.gfColor(level)}"></span>${AO.gfLabel(level)}`;
 
         const tags = document.createElement("div");
         tags.className = "tags";
@@ -362,57 +586,96 @@
           tags.appendChild(tg);
         });
 
-        const fav = document.createElement("div");
-        fav.className = "badge fav";
-        fav.textContent = AO.isFav(r.id) ? "❤️ Favori" : "🤍 Ajouter";
-        fav.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const nowFav = AO.toggleFav(r.id);
-          fav.textContent = nowFav ? "❤️ Favori" : "🤍 Ajouter";
-        });
-
         left.appendChild(title);
         left.appendChild(meta);
-        left.appendChild(badge);
-        left.appendChild(fav);
         if (r.note) left.appendChild(note);
+        left.appendChild(gf);
         if ((r.tags || []).length > 0) left.appendChild(tags);
+
+        const scoreCol = document.createElement("div");
+        scoreCol.className = "scoreCol";
+
+        const fav = document.createElement("button");
+        fav.className = "favBtn" + (AO.isFavorite(r.id) ? " active" : "");
+        fav.textContent = AO.isFavorite(r.id) ? "❤️" : "🤍";
+        fav.title = "Ajouter aux favoris";
+        fav.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const on = AO.toggleFavorite(r.id);
+          fav.classList.toggle("active", on);
+          fav.textContent = on ? "❤️" : "🤍";
+          // si filtre favoris actif, re-apply
+          if (activeFilters.has("favorites")) applyFilters();
+        });
 
         const score = document.createElement("div");
         score.className = "score";
-        score.textContent = `⭐ ${r.score?.toFixed ? r.score.toFixed(1) : (r.score ?? "—")}`;
+        score.textContent = `⭐ ${r.scoreLabel ?? r.score ?? "—"}`;
+
+        scoreCol.appendChild(fav);
+
+        if (activeFilters.has("nearby") && r._km != null){
+          const d = document.createElement("div");
+          d.className = "dist";
+          d.textContent = AO.formatDistance(r._km);
+          scoreCol.appendChild(d);
+        }
+
+        scoreCol.appendChild(score);
 
         el.appendChild(left);
-        el.appendChild(score);
+        el.appendChild(scoreCol);
 
-        const focus = () => {
-          if (typeof r.lat === "number" && typeof r.lon === "number"){
-            map.setView([r.lat, r.lon], 14, { animate: true });
-            const m = markers.get(r.id);
-            if (m) m.openPopup();
-          }
+        const go = () => {
+          window.location.href = `restaurant.html?id=${encodeURIComponent(r.id)}`;
         };
 
-        el.addEventListener("click", () => { focus(); goToResto(r.id); });
-        el.addEventListener("keydown", (e) => { if (e.key === "Enter") { focus(); goToResto(r.id); } });
+        el.addEventListener("click", go);
+        el.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
 
         items.appendChild(el);
 
-        if (typeof r.lat === "number" && typeof r.lon === "number"){
-          const popupHtml = `
-            <div style="font-family: Inter, Arial; min-width: 220px;">
-              <div style="font-weight: 900; margin-bottom: 4px;">${AO.safeText(r.name)}</div>
-              <div style="opacity:.8; font-size: 12.5px; margin-bottom: 8px;">
-                ${AO.safeText(r.city)} • ${AO.safeText(r.neighborhood || "—")} • ${AO.safeText(r.price || "—")}
-              </div>
-              <div style="font-size: 12.5px; margin-bottom: 10px;">${AO.safeText(r.address || "")}</div>
-              <div style="font-size: 12.5px; opacity:.9;">⭐ ${AO.safeText(r.score ?? "—")}</div>
+        // Marker
+        const popupHtml = `
+          <div style="font-family: Inter, Arial; min-width: 220px;">
+            <div style="font-weight: 900; margin-bottom: 4px;">${r.name}</div>
+            <div style="opacity:.8; font-size: 12.5px; margin-bottom: 8px;">
+              ${r.city} • ${r.neighborhood || "—"} • ${r.price || "—"}
             </div>
-          `;
-          const marker = L.marker([r.lat, r.lon]).addTo(map).bindPopup(popupHtml);
-          marker.on("click", () => goToResto(r.id));
-          markers.set(r.id, marker);
-        }
+            <div style="font-size: 12.5px; margin-bottom: 10px;">${r.address}</div>
+            <div style="font-size: 12.5px; opacity:.9;">
+              ⭐ ${r.scoreLabel ?? r.score ?? "—"}
+              ${(r.tags || []).length ? " • " + (r.tags || []).map(AO.tagLabel).join(" · ") : ""}
+            </div>
+          </div>
+        `;
+
+        const marker = L.marker([r.lat, r.lon], { icon: markerIcon(r.gfSafety) })
+          .addTo(map)
+          .bindPopup(popupHtml);
+
+        marker.on("click", () => go());
+        markers.set(r.id, marker);
+      });
+
+      if (list.length === 1){
+        map.setView([list[0].lat, list[0].lon], 13);
+      }
+    }
+
+    async function enableNearby(){
+      // Demande la position
+      return new Promise((resolve) => {
+        if (!navigator.geolocation) return resolve(false);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            AO.saveLastLocation(userLoc.lat, userLoc.lon);
+            resolve(true);
+          },
+          () => resolve(false),
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
       });
     }
 
@@ -421,92 +684,84 @@
       const city = citySelect.value;
       const neighborhood = neighborhoodSelect.value;
 
-      const wantsFavs = activeFilters.has("__favs");
+      const favSet = AO.getFavorites();
 
-      let list = restaurants.filter(r => {
-        const hay = [
-          r.name, r.city, r.neighborhood, r.address, r.note,
-          ...(r.tags || []),
-          r.gf_level
-        ].join(" ").toLowerCase();
-
+      let filtered = restaurants.filter(r => {
+        const hay = [r.name, r.city, r.neighborhood, r.address, r.note, ...(r.tags || [])].join(" ").toLowerCase();
         const matchQ = !q || hay.includes(q);
-
-        const matchTags = [...activeFilters]
-          .filter(x => x !== "__favs")
-          .every(f => (r.tags || []).includes(f));
-
         const matchCity = !city || r.city === city;
         const matchNeighborhood = !neighborhood || r.neighborhood === neighborhood;
 
-        const matchFavs = !wantsFavs || AO.isFav(r.id);
+        // tags chips (brunch/takeout/etc.)
+        const tagFilters = [...activeFilters].filter(f => !["favorites","nearby","dedicated","option","risk"].includes(f));
+        const matchTags = tagFilters.length === 0 ? true : tagFilters.every(f => (r.tags || []).includes(f));
 
-        return matchQ && matchTags && matchCity && matchNeighborhood && matchFavs;
+        // favorites
+        const matchFav = !activeFilters.has("favorites") || favSet.has(r.id);
+
+        // gf safety
+        const gf = r.gfSafety || "option";
+        const matchGF =
+          (!activeFilters.has("dedicated") && !activeFilters.has("option") && !activeFilters.has("risk"))
+          ? true
+          : (activeFilters.has(gf));
+
+        return matchQ && matchCity && matchNeighborhood && matchTags && matchFav && matchGF;
       });
 
-      // if we have user position, show closest first
-      if (userPos){
-        list = list
-          .map(r => ({ r, d: (typeof r.lat==="number" && typeof r.lon==="number") ? AO.haversineKm(userPos.lat, userPos.lon, r.lat, r.lon) : 99999 }))
-          .sort((a,b) => a.d - b.d)
-          .map(x => x.r);
+      // Nearby sort
+      if (activeFilters.has("nearby")){
+        if (!userLoc){
+          // si pas encore de loc, on tente, sinon on continue sans distance
+        }
+        filtered = filtered.map(withDistance);
+        filtered.sort((a,b) => (a._km ?? 1e9) - (b._km ?? 1e9));
       }
 
-      render(list);
+      render(filtered);
     }
 
-    // UI events
     document.getElementById("search").addEventListener("input", applyFilters);
     citySelect.addEventListener("change", applyFilters);
     neighborhoodSelect.addEventListener("change", applyFilters);
 
     document.querySelectorAll(".chip").forEach(ch => {
-      ch.addEventListener("click", () => {
+      ch.addEventListener("click", async () => {
         const f = ch.dataset.filter;
-        if (activeFilters.has(f)) { activeFilters.delete(f); ch.classList.remove("active"); }
-        else { activeFilters.add(f); ch.classList.add("active"); }
+
+        // handle nearby special
+        if (f === "nearby"){
+          if (activeFilters.has("nearby")){
+            activeFilters.delete("nearby");
+            ch.classList.remove("active");
+            applyFilters();
+            return;
+          }
+          const ok = await enableNearby();
+          if (ok){
+            activeFilters.add("nearby");
+            ch.classList.add("active");
+            applyFilters();
+          } else {
+            alert("Impossible d’accéder à ta position (autorisation refusée).");
+          }
+          return;
+        }
+
+        if (activeFilters.has(f)) {
+          activeFilters.delete(f);
+          ch.classList.remove("active");
+        } else {
+          activeFilters.add(f);
+          ch.classList.add("active");
+        }
         applyFilters();
       });
     });
 
-    document.getElementById("nearMeBtn").addEventListener("click", () => {
-      if (!navigator.geolocation){
-        alert("La géolocalisation n'est pas supportée sur ce navigateur.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-          map.setView([userPos.lat, userPos.lon], 13);
-          applyFilters();
-        },
-        () => alert("Impossible d'obtenir ta position (permission refusée ou indisponible).")
-      );
-    });
-
-    document.getElementById("mapStyleBtn").addEventListener("click", () => {
-      const cur = AO.getMapStyle();
-      const next = (cur === "dark") ? "light" : "dark";
-      AO.setMapStyle(next);
-      setTile(next);
-    });
-
-    // Suggestion email
-    const mailTo = "mailto:gabriel.leguiader@gmail.com"
-      + "?subject=" + encodeURIComponent("Suggestion de resto sans gluten")
-      + "&body=" + encodeURIComponent(
-        "Nom du restaurant:\nAdresse:\nVille:\nPourquoi c'est bien pour sans gluten:\nLien Google Maps (si possible):\n"
-      );
-    document.getElementById("mailLink").setAttribute("href", mailTo);
-
     // INIT
     buildLocationFilters();
     applyFilters();
-
-    // PWA (optional)
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(()=>{});
-    }
   </script>
 </body>
 </html>
