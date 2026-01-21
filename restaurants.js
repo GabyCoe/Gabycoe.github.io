@@ -7,13 +7,14 @@ window.RESTAURANTS = [
     address: "73 Rue Prince-Arthur E, Montréal, QC H2X 1B4",
     lat: 45.514775,
     lon: -73.571903,
-    gf_level: "dedicated", // dedicated | option | chain | unknown
     score: 9.0,
-    price: "$$$",
-    tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
+    scoreLabel: "9.0",
     image: "images/arepera83.jpg",
     note: "Je recommande à 100% pour la nourriture, juste un tout petit peu cher.",
-    website: "https://www.arepera.ca/"
+    tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
+    price: "$$$",
+    website: "https://www.arepera.ca/",
+    gfSafety: "dedicated" // dedicated | option | risk
   },
   {
     id: "le-marquis-signature-sante",
@@ -23,13 +24,14 @@ window.RESTAURANTS = [
     address: "194 Saint-Paul St W, Montreal, Quebec H2Y 1Z9",
     lat: 45.5017,
     lon: -73.5673,
-    gf_level: "option",
     score: 4.6,
-    price: "$$",
-    tags: [],
+    scoreLabel: "4.6",
     image: "images/575_Le-marquis-sans-gluten-vieux-montreal-7.jpg",
     note: "Parfait pour congeler et se faire de merveilleux petits déjeuner, je recommande à 100% !",
-    website: ""
+    tags: [],
+    price: "$$",
+    website: "",
+    gfSafety: "option"
   },
   {
     id: "bellucci-italia-complexe-desjardins",
@@ -37,30 +39,32 @@ window.RESTAURANTS = [
     city: "Montréal",
     neighborhood: "Centre-ville",
     address: "200 Rue Sainte-Catherine O, Montréal, QC H5B 1B2 (Complexe Desjardins)",
-    lat: 45.5049,
-    lon: -73.5698,
-    gf_level: "option",
+    lat: 45.5049,     // ✅ mets la vraie position si tu veux
+    lon: -73.5696,
     score: 7.8,
-    price: "$$",
-    tags: ["takeout"],
+    scoreLabel: "7.8",
     image: "images/caption.jpg",
     note: "Pâtes fines et bien cuites. On a pris la “fromage” (moins garnie que prévu). Option sans gluten dispo.",
-    website: "https://bellucciitalia.com/"
+    tags: ["takeout"],
+    price: "$$",
+    website: "https://bellucciitalia.com/",
+    gfSafety: "option"
   },
   {
     id: "dominos-pizza-gf",
-    name: "Domino’s Pizza (pâte sans gluten)",
+    name: "Domino’s Pizza",
     city: "Montréal",
     neighborhood: "",
     address: "Montréal (voir succursale)",
-    lat: 45.5019,
-    lon: -73.5674,
-    gf_level: "chain",
+    lat: 45.505,
+    lon: -73.57,
     score: 8.2,
-    price: "$",
-    tags: ["pizza", "takeout"],
+    scoreLabel: "8.2",
     image: "images/dominos-gluten-free-pizza-2021-featured.jpg",
-    note: "Option pâte sans gluten. Très bonne !",
-    website: "https://www.dominos.ca/"
+    note: "Option pâte sans gluten. Très bonne ! (Attention : risque de contamination croisée selon les succursales.)",
+    tags: ["pizza", "takeout"],
+    price: "$",
+    website: "https://www.dominos.ca/",
+    gfSafety: "risk"
   }
 ];
