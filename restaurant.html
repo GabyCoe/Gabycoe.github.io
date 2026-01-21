@@ -20,6 +20,7 @@
       --border: rgba(255,255,255,0.12);
       --shadow: 0 20px 60px rgba(0,0,0,0.45);
       --radius: 18px;
+      --radius2: 14px;
       --max: 1120px;
     }
     *{ box-sizing:border-box; }
@@ -35,17 +36,18 @@
       min-height: 100vh;
     }
     a{ color: inherit; text-decoration:none; }
-    .wrap{ max-width: var(--max); margin: 0 auto; padding: 22px 18px 60px; }
+    .wrap{ max-width: var(--max); margin: 0 auto; padding: 0 18px 60px; }
 
+    /* Sticky top bar */
     .topbar{
       position: sticky;
       top: 0;
       z-index: 50;
       display:flex; align-items:center; justify-content:space-between;
-      padding: 10px 6px; gap: 12px;
-      background: rgba(11,15,25,0.55);
+      padding: 14px 6px; gap: 12px;
+      background: rgba(11,15,25,0.60);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
     .brand{ display:flex; align-items:center; gap: 10px; font-weight: 900; letter-spacing:-0.02em; }
     .logo{
@@ -74,10 +76,15 @@
       align-items:start;
     }
 
+    /* Sidebar */
     .side{ padding: 14px; }
-    .sideTitle{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding: 6px 6px 10px; }
+    .sideTitle{
+      display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+      padding: 6px 6px 10px;
+    }
     .sideTitle h2{ margin:0; font-size:15px; }
     .count{ color: var(--muted); font-size:12.5px; }
+
     .sideSearch{
       margin: 0 6px 10px;
       display:flex; gap:10px; align-items:center;
@@ -93,8 +100,39 @@
       color: var(--text);
       font-size:14px;
     }
+    .sideSearch input::placeholder{ color: rgba(255,255,255,0.48); }
 
-    .list{ display:flex; flex-direction:column; gap:10px; padding: 0 6px 6px; max-height: calc(100vh - 220px); overflow:auto; }
+    .sideActions{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 0 6px 12px;
+    }
+    .chip{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.85);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor:pointer;
+      user-select:none;
+      display:inline-flex;
+      gap: 8px;
+      align-items:center;
+    }
+    .chip.active{
+      background: rgba(16,185,129,0.18);
+      border-color: rgba(16,185,129,0.35);
+      color: rgba(255,255,255,0.92);
+    }
+
+    .list{
+      display:flex; flex-direction:column; gap:10px;
+      padding: 0 6px 6px;
+      max-height: calc(100vh - 290px);
+      overflow:auto;
+    }
     .row{
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.05);
@@ -112,6 +150,7 @@
     }
     .rowName{ font-weight:900; margin:0 0 4px; letter-spacing:-0.01em; }
     .rowMeta{ margin:0; color: var(--muted); font-size:12.5px; line-height:1.35; }
+    .rowRight{ display:flex; flex-direction:column; align-items:flex-end; gap: 8px; }
     .rowScore{
       font-weight:900;
       font-size:12.5px;
@@ -122,7 +161,18 @@
       height: fit-content;
       white-space:nowrap;
     }
+    .rowDist{
+      font-size: 12px;
+      color: rgba(255,255,255,0.72);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.16);
+      padding: 6px 8px;
+      border-radius: 999px;
+      white-space:nowrap;
+      display:none;
+    }
 
+    /* Detail */
     .detail{ overflow:hidden; }
     .heroImg{
       width:100%;
@@ -132,5 +182,589 @@
       border-bottom: 1px solid rgba(255,255,255,0.10);
       background: rgba(0,0,0,0.2);
     }
-    .detailTop{ padding: 16px; display:flex; justify-content:space-between; align-items:flex-start; gap: 12px; }
-    .title{ margin:0; font-size: 22px; font-weight: 900; letter-spacing:-0.02em
+    .detailTop{
+      padding: 16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap: 12px;
+    }
+    .title{
+      margin:0;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing:-0.02em;
+      line-height:1.15;
+    }
+    .meta{
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height:1.5;
+    }
+    .pillRow{ display:flex; gap: 8px; flex-wrap:wrap; margin-top: 10px; }
+    .pill{
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      padding: 7px 10px;
+      border-radius: 999px;
+    }
+    .note{
+      padding: 0 16px 16px;
+      margin:0;
+      font-size: 15px;
+      line-height:1.6;
+    }
+    .actions{
+      padding: 0 16px 18px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; }
+    .btn{
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-weight: 800;
+      font-size: 14px;
+      display:inline-flex;
+      gap: 10px;
+      align-items:center;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      border: 0;
+      box-shadow: 0 14px 40px rgba(99,102,241,0.22);
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    .favBtn{
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.16);
+      border-radius: 999px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 900;
+      display:inline-flex;
+      gap: 8px;
+      align-items:center;
+      white-space:nowrap;
+    }
+    .favBtn.on{
+      border-color: rgba(244,63,94,0.45);
+      background: rgba(244,63,94,0.16);
+    }
+
+    .empty{
+      padding: 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height:1.6;
+    }
+
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      .list{ max-height: 340px; }
+      .heroImg{ height: 240px; }
+      .actions{ gap: 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">C</div>
+        <a id="homeLink" href="./index.html" style="font-weight:900; color:inherit">AddictOCéliaque</a>
+      </div>
+      <div class="nav">
+        <a href="./index.html#restaurants">Restaurants</a>
+        <a href="./index.html#carte">Carte</a>
+        <a href="./index.html#suggestion">Suggérer</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Sidebar -->
+      <aside class="card side">
+        <div class="sideTitle">
+          <h2>Restaurants</h2>
+          <div class="count" id="count">—</div>
+        </div>
+
+        <div class="sideSearch" title="Recherche">
+          <span style="opacity:.7;">🔎</span>
+          <input id="q" placeholder="Rechercher un resto, quartier, tag…" />
+        </div>
+
+        <div class="sideActions">
+          <div class="chip" id="favFilter">❤️ Favoris</div>
+          <div class="chip" id="nearMe">📍 Autour de moi</div>
+        </div>
+
+        <div class="list" id="list"></div>
+      </aside>
+
+      <!-- Detail -->
+      <main class="card detail" id="detail">
+        <img id="img" class="heroImg" alt="" style="display:none;">
+        <div class="detailTop">
+          <div>
+            <h1 class="title" id="name">—</h1>
+            <p class="meta" id="meta">—</p>
+            <div class="pillRow" id="tags"></div>
+          </div>
+          <div class="rowScore" id="score">⭐ —</div>
+        </div>
+
+        <p class="note" id="note">—</p>
+
+        <div class="actions">
+          <div class="btnRow">
+            <a class="btn primary" id="gmaps" target="_blank" rel="noopener">🗺️ Itinéraire</a>
+            <a class="btn" id="site" target="_blank" rel="noopener" style="display:none;">🔗 Site</a>
+            <button class="btn" id="share">📤 Partager</button>
+            <button class="btn" id="copy">📎 Copier lien</button>
+          </div>
+
+          <button class="favBtn" id="favBtn" title="Ajouter aux favoris">❤️ <span id="favText">Favori</span></button>
+        </div>
+
+        <div class="empty" id="empty" style="display:none;">
+          Resto introuvable. Retourne à la liste et choisis un restaurant.
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Data -->
+  <script src="./restaurants.js"></script>
+  <script src="./utils.js"></script>
+
+  <script>
+    // -------------------------
+    // Data + helpers
+    // -------------------------
+    const DATA = (window.RESTAURANTS && Array.isArray(window.RESTAURANTS)) ? window.RESTAURANTS : [];
+    const qs = (k) => new URLSearchParams(window.location.search).get(k);
+    const safe = (v, fb="—") => (v === undefined || v === null || v === "" ? fb : v);
+
+    const tagLabel = (t) => {
+      const dict = {
+        dedicated_gf: "Dédié GF",
+        brunch: "Brunch",
+        takeout: "Takeout",
+        pizza: "Pizza",
+        vegan: "Vegan",
+        wifi: "Wi-Fi",
+        happy_hour: "Happy hour"
+      };
+      return dict[t] || t;
+    };
+
+    // -------------------------
+    // Favorites (localStorage)
+    // -------------------------
+    const FAV_KEY = "ao_favs_v1";
+    const getFavs = () => {
+      try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]")); }
+      catch { return new Set(); }
+    };
+    const setFavs = (set) => {
+      localStorage.setItem(FAV_KEY, JSON.stringify([...set]));
+    };
+    const isFav = (id) => getFavs().has(id);
+    const toggleFav = (id) => {
+      const favs = getFavs();
+      if (favs.has(id)) favs.delete(id); else favs.add(id);
+      setFavs(favs);
+      return favs;
+    };
+
+    // -------------------------
+    // Distance (Haversine)
+    // -------------------------
+    const toRad = (d) => d * Math.PI / 180;
+    const distKm = (aLat,aLon,bLat,bLon) => {
+      const R = 6371;
+      const dLat = toRad(bLat-aLat);
+      const dLon = toRad(bLon-aLon);
+      const s1 = Math.sin(dLat/2)**2;
+      const s2 = Math.cos(toRad(aLat))*Math.cos(toRad(bLat))*Math.sin(dLon/2)**2;
+      return 2*R*Math.asin(Math.sqrt(s1+s2));
+    };
+    const fmtDist = (km) => km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(1)} km`;
+
+    let userPos = null; // {lat, lon}
+    let nearMode = false;
+
+    async function getUserPosition(){
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error("no-geo"));
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+          (err) => reject(err),
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+      });
+    }
+
+    // -------------------------
+    // DOM
+    // -------------------------
+    const listEl = document.getElementById("list");
+    const countEl = document.getElementById("count");
+    const qEl = document.getElementById("q");
+
+    const imgEl = document.getElementById("img");
+    const nameEl = document.getElementById("name");
+    const metaEl = document.getElementById("meta");
+    const tagsEl = document.getElementById("tags");
+    const noteEl = document.getElementById("note");
+    const scoreEl = document.getElementById("score");
+    const gmapsEl = document.getElementById("gmaps");
+    const siteEl = document.getElementById("site");
+    const emptyEl = document.getElementById("empty");
+
+    const favBtn = document.getElementById("favBtn");
+    const favText = document.getElementById("favText");
+    const favFilter = document.getElementById("favFilter");
+    const nearMe = document.getElementById("nearMe");
+
+    const shareBtn = document.getElementById("share");
+    const copyBtn = document.getElementById("copy");
+    const homeLink = document.getElementById("homeLink");
+
+    // Bulletproof home link (GitHub Pages)
+    homeLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.location.assign("./index.html");
+    });
+
+    let favOnly = false;
+
+    function currentId(){
+      return qs("id") || (DATA[0] && DATA[0].id) || "";
+    }
+
+    function buildList(activeId, query=""){
+      const q = query.trim().toLowerCase();
+      let list = DATA.slice();
+
+      // filter: favorites
+      if (favOnly){
+        const favs = getFavs();
+        list = list.filter(r => favs.has(r.id));
+      }
+
+      // search
+      if (q){
+        list = list.filter(r => {
+          const hay = [r.name,r.city,r.neighborhood,r.address,r.note,...(r.tags||[])].join(" ").toLowerCase();
+          return hay.includes(q);
+        });
+      }
+
+      // distance sort if near mode
+      if (nearMode && userPos){
+        list = list
+          .map(r => ({
+            ...r,
+            _km: (typeof r.lat==="number" && typeof r.lon==="number") ? distKm(userPos.lat,userPos.lon,r.lat,r.lon) : null
+          }))
+          .sort((a,b) => {
+            if (a._km === null && b._km === null) return 0;
+            if (a._km === null) return 1;
+            if (b._km === null) return -1;
+            return a._km - b._km;
+          });
+      }
+
+      countEl.textContent = list.length + (list.length > 1 ? " restos" : " resto");
+      listEl.innerHTML = "";
+
+      list.forEach(r => {
+        const row = document.createElement("div");
+        row.className = "row" + (r.id === activeId ? " active" : "");
+        row.tabIndex = 0;
+
+        const left = document.createElement("div");
+        const n = document.createElement("p");
+        n.className = "rowName";
+        n.textContent = safe(r.name);
+
+        const m = document.createElement("p");
+        m.className = "rowMeta";
+        m.textContent = `${safe(r.city)} • ${safe(r.neighborhood, "—")}`;
+
+        left.appendChild(n);
+        left.appendChild(m);
+
+        const right = document.createElement("div");
+        right.className = "rowRight";
+
+        const sc = document.createElement("div");
+        sc.className = "rowScore";
+        sc.textContent = `⭐ ${safe(r.scoreLabel ?? r.score, "—")}`;
+
+        const d = document.createElement("div");
+        d.className = "rowDist";
+        if (nearMode && userPos && typeof r.lat==="number" && typeof r.lon==="number"){
+          const km = distKm(userPos.lat,userPos.lon,r.lat,r.lon);
+          d.textContent = fmtDist(km);
+          d.style.display = "inline-flex";
+        }
+
+        right.appendChild(sc);
+        right.appendChild(d);
+
+        row.appendChild(left);
+        row.appendChild(right);
+
+        const go = () => {
+          window.location.href = `restaurant.html?id=${encodeURIComponent(r.id)}`;
+        };
+        row.addEventListener("click", go);
+        row.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+
+        listEl.appendChild(row);
+      });
+
+      return list;
+    }
+
+    function updateFavUI(id){
+      const on = isFav(id);
+      favBtn.classList.toggle("on", on);
+      favText.textContent = on ? "Retirer" : "Ajouter";
+    }
+
+    function showDetail(id){
+      const r = DATA.find(x => x.id === id);
+
+      if (!r){
+        emptyEl.style.display = "block";
+        imgEl.style.display = "none";
+        nameEl.textContent = "Restaurant introuvable";
+        metaEl.textContent = "—";
+        noteEl.textContent = "—";
+        scoreEl.textContent = "⭐ —";
+        tagsEl.innerHTML = "";
+        gmapsEl.href = "./index.html";
+        siteEl.style.display = "none";
+        updateFavUI(id);
+        return;
+      }
+
+      emptyEl.style.display = "none";
+      document.title = `${r.name} — AddictOCéliaque`;
+
+      nameEl.textContent = safe(r.name);
+      scoreEl.textContent = `⭐ ${safe(r.scoreLabel ?? r.score, "—")}`;
+
+      // meta + distance
+      let extraDist = "";
+      if (nearMode && userPos && typeof r.lat==="number" && typeof r.lon==="number"){
+        const km = distKm(userPos.lat,userPos.lon,r.lat,r.lon);
+        extraDist = ` • 📍 ${fmtDist(km)}`;
+      }
+      metaEl.textContent = `${safe(r.city)} • ${safe(r.neighborhood, "—")} • ${safe(r.price, "—")} • ${safe(r.address)}${extraDist}`;
+
+      noteEl.textContent = safe(r.note, "");
+
+      // Image
+      if (r.image){
+        imgEl.style.display = "block";
+        imgEl.src = r.image;
+        imgEl.alt = r.name || "";
+        imgEl.onerror = () => { imgEl.style.display = "none"; };
+      } else {
+        imgEl.style.display = "none";
+      }
+
+      // Tags
+      tagsEl.innerHTML = "";
+      (r.tags || []).forEach(t => {
+        const p = document.createElement("div");
+        p.className = "pill";
+        p.textContent = tagLabel(t);
+        tagsEl.appendChild(p);
+      });
+
+      // Google maps
+      const q = encodeURIComponent(r.address || `${r.lat},${r.lon}`);
+      gmapsEl.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+
+      // Website
+      if (r.website){
+        siteEl.style.display = "inline-flex";
+        siteEl.href = r.website;
+      } else {
+        siteEl.style.display = "none";
+      }
+
+      // Fav UI
+      updateFavUI(r.id);
+
+      // Share + copy
+      const url = window.location.href;
+      shareBtn.onclick = async () => {
+        const shareData = { title: r.name || "Restaurant", text: "AddictOCéliaque — resto sans gluten", url };
+        try{
+          if (navigator.share) {
+            await navigator.share(shareData);
+          } else {
+            await navigator.clipboard.writeText(url);
+            shareBtn.textContent = "✅ Lien copié";
+            setTimeout(() => (shareBtn.textContent = "📤 Partager"), 1200);
+          }
+        } catch {}
+      };
+
+      copyBtn.onclick = async () => {
+        try{
+          await navigator.clipboard.writeText(url);
+          copyBtn.textContent = "✅ Copié";
+          setTimeout(() => (copyBtn.textContent = "📎 Copier lien"), 1200);
+        } catch {
+          window.prompt("Copie ce lien :", url);
+        }
+      };
+    }
+
+    // -------------------------
+    // INIT
+    // -------------------------
+    function init(){
+      const id = currentId();
+
+      // Initial list + detail
+      buildList(id, "");
+      showDetail(id);
+
+      // Search
+      qEl.addEventListener("input", () => {
+        buildList(currentId(), qEl.value);
+      });
+
+      // Toggle favorites filter
+      favFilter.addEventListener("click", () => {
+        favOnly = !favOnly;
+        favFilter.classList.toggle("active", favOnly);
+        buildList(currentId(), qEl.value);
+
+        // si on est en favOnly et que le resto actuel n'est pas favori => afficher le premier favori
+        if (favOnly && !isFav(currentId())){
+          const favs = [...getFavs()];
+          if (favs.length){
+            window.location.href = `restaurant.html?id=${encodeURIComponent(favs[0])}`;
+          }
+        }
+      });
+
+      // Toggle near me
+      nearMe.addEventListener("click", async () => {
+        if (!nearMode){
+          nearMe.textContent = "⏳ Localisation…";
+          try{
+            userPos = await getUserPosition();
+            nearMode = true;
+            nearMe.textContent = "📍 Autour de moi";
+            nearMe.classList.add("active");
+            buildList(currentId(), qEl.value);
+            showDetail(currentId());
+          } catch {
+            nearMode = false;
+            userPos = null;
+            nearMe.textContent = "📍 Autour de moi";
+            nearMe.classList.remove("active");
+            alert("Impossible d’accéder à ta localisation (autorisation refusée ?).");
+          }
+        } else {
+          nearMode = false;
+          userPos = null;
+          nearMe.classList.remove("active");
+          buildList(currentId(), qEl.value);
+          showDetail(currentId());
+        }
+      });
+
+      // Favorite button on detail
+      favBtn.addEventListener("click", () => {
+        const id = currentId();
+        toggleFav(id);
+        updateFavUI(id);
+
+        // refresh list if favorites filter is on
+        if (favOnly){
+          buildList(id, qEl.value);
+          if (!isFav(id)){
+            const favs = [...getFavs()];
+            if (favs.length){
+              window.location.href = `restaurant.html?id=${encodeURIComponent(favs[0])}`;
+            }
+          }
+        }
+      });
+
+      // Keyboard navigation (↑ ↓) in filtered list
+      document.addEventListener("keydown", (e) => {
+        if (!["ArrowUp","ArrowDown"].includes(e.key)) return;
+
+        const activeId = currentId();
+        const q = qEl.value || "";
+
+        // rebuild the same list view logic
+        let list = DATA.slice();
+        if (favOnly){
+          const favs = getFavs();
+          list = list.filter(r => favs.has(r.id));
+        }
+        const qq = q.trim().toLowerCase();
+        if (qq){
+          list = list.filter(r => {
+            const hay = [r.name,r.city,r.neighborhood,r.address,r.note,...(r.tags||[])].join(" ").toLowerCase();
+            return hay.includes(qq);
+          });
+        }
+        if (nearMode && userPos){
+          list = list
+            .map(r => ({
+              ...r,
+              _km: (typeof r.lat==="number" && typeof r.lon==="number") ? distKm(userPos.lat,userPos.lon,r.lat,r.lon) : null
+            }))
+            .sort((a,b) => {
+              if (a._km === null && b._km === null) return 0;
+              if (a._km === null) return 1;
+              if (b._km === null) return -1;
+              return a._km - b._km;
+            });
+        }
+
+        const idx = list.findIndex(r => r.id === activeId);
+        if (idx === -1 || list.length === 0) return;
+
+        e.preventDefault();
+        const next = (e.key === "ArrowDown")
+          ? list[Math.min(idx+1, list.length-1)]
+          : list[Math.max(idx-1, 0)];
+
+        if (next && next.id !== activeId){
+          window.location.href = `restaurant.html?id=${encodeURIComponent(next.id)}`;
+        }
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
