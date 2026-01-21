@@ -6,324 +6,180 @@
   <title>AddictOCéliaque — Restaurants sans gluten testés</title>
   <meta name="description" content="Restaurants testés sans gluten. Sélection fiable, carte interactive, avis honnêtes." />
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
   <style>
     :root{
-      --bg: #0b0f19;
-      --panel: rgba(255,255,255,0.08);
-      --panel2: rgba(255,255,255,0.06);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.66);
-      --border: rgba(255,255,255,0.12);
-      --shadow: 0 20px 60px rgba(0,0,0,0.45);
-      --radius: 18px;
-      --radius2: 14px;
-      --max: 1120px;
+      --bg:#0b0f19; --panel:rgba(255,255,255,0.08); --panel2:rgba(255,255,255,0.06);
+      --text:rgba(255,255,255,0.92); --muted:rgba(255,255,255,0.66); --border:rgba(255,255,255,0.12);
+      --shadow:0 20px 60px rgba(0,0,0,0.45); --radius:18px; --radius2:14px; --max:1120px;
     }
-
-    *{ box-sizing: border-box; }
+    *{box-sizing:border-box;}
     body{
       margin:0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--text);
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
       background:
         radial-gradient(1200px 600px at 20% -10%, rgba(99,102,241,0.35), transparent 60%),
         radial-gradient(900px 500px at 85% 10%, rgba(16,185,129,0.25), transparent 55%),
         radial-gradient(1000px 800px at 30% 120%, rgba(244,63,94,0.18), transparent 60%),
         var(--bg);
-      min-height: 100vh;
+      min-height:100vh;
     }
+    a{color:inherit; text-decoration:none;}
+    .wrap{max-width:var(--max); margin:0 auto; padding:22px 18px 70px;}
 
-    a{ color: inherit; text-decoration: none; }
-    .wrap{ max-width: var(--max); margin: 0 auto; padding: 22px 18px 70px; }
-
-    /* Top bar */
-    .topbar{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 10px 6px; gap: 12px;
-    }
-    .brand{
-      display:flex; align-items:center; gap: 10px; font-weight: 800;
-      letter-spacing: -0.02em;
-    }
+    .topbar{display:flex; align-items:center; justify-content:space-between; padding:10px 6px; gap:12px;}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:-0.02em;}
     .logo{
-      width: 34px; height: 34px; border-radius: 12px;
-      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
-      box-shadow: 0 10px 30px rgba(99,102,241,0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      font-size: 18px;
-      color: rgba(255,255,255,0.95);
-      letter-spacing: -0.02em;
+      width:34px; height:34px; border-radius:12px;
+      background:linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      box-shadow:0 10px 30px rgba(99,102,241,0.25);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; font-size:18px; color:rgba(255,255,255,0.95);
     }
-    .nav{
-      display:flex; gap: 10px; align-items:center; flex-wrap: wrap;
-      color: var(--muted); font-weight: 600; font-size: 14px;
-    }
-    .nav a{ padding: 8px 10px; border-radius: 999px; }
-    .nav a:hover{ background: rgba(255,255,255,0.06); color: var(--text); }
+    .nav{display:flex; gap:10px; align-items:center; flex-wrap:wrap; color:var(--muted); font-weight:600; font-size:14px;}
+    .nav a{padding:8px 10px; border-radius:999px;}
+    .nav a:hover{background:rgba(255,255,255,0.06); color:var(--text);}
 
-    /* Hero */
     .hero{
-      margin-top: 26px;
+      margin-top:26px;
       display:grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 18px;
-      align-items: stretch;
+      grid-template-columns:1.2fr 0.8fr;
+      gap:18px;
+      align-items:stretch;
     }
     .card{
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
       backdrop-filter: blur(14px);
     }
-    .heroMain{ padding: 26px; position: relative; overflow: hidden; }
+    .heroMain{padding:26px; position:relative; overflow:hidden;}
     .heroMain:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(500px 240px at 20% 10%, rgba(99,102,241,0.32), transparent 60%);
+      content:""; position:absolute; inset:-2px;
+      background:radial-gradient(500px 240px at 20% 10%, rgba(99,102,241,0.32), transparent 60%);
       opacity:0.9; pointer-events:none;
     }
-    .heroMain > *{ position: relative; }
-    h1{
-      margin: 0 0 10px;
-      font-size: clamp(34px, 4vw, 52px);
-      line-height: 1.02;
-      letter-spacing: -0.04em;
-    }
-    .sub{
-      margin: 0 0 18px;
-      color: var(--muted);
-      font-size: 16.5px;
-      line-height: 1.5;
-      max-width: 62ch;
-    }
-    .ctaRow{
-      display:flex; gap: 10px; flex-wrap: wrap; align-items:center;
-      margin-top: 18px;
-    }
+    .heroMain > *{position:relative;}
+    h1{margin:0 0 10px; font-size:clamp(34px, 4vw, 52px); line-height:1.02; letter-spacing:-0.04em;}
+    .sub{margin:0 0 18px; color:var(--muted); font-size:16.5px; line-height:1.5; max-width:62ch;}
+    .ctaRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:18px;}
     .btn{
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      font-weight: 700;
-      font-size: 14px;
-      display:inline-flex;
-      gap: 10px;
-      align-items:center;
-      cursor:pointer;
+      padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+      background:rgba(255,255,255,0.06); color:var(--text);
+      font-weight:700; font-size:14px; display:inline-flex; gap:10px; align-items:center; cursor:pointer;
     }
     .btn.primary{
-      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
-      border: 0;
-      box-shadow: 0 14px 40px rgba(99,102,241,0.22);
+      background:linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      border:0;
+      box-shadow:0 14px 40px rgba(99,102,241,0.22);
     }
-    .btn:hover{ transform: translateY(-1px); transition: 120ms ease; }
+    .btn:hover{transform:translateY(-1px); transition:120ms ease;}
 
-    .pillRow{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .pillRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;}
     .pill{
-      font-size: 12px; color: rgba(255,255,255,0.74);
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
-      padding: 7px 10px; border-radius: 999px;
+      font-size:12px; color:rgba(255,255,255,0.74);
+      border:1px solid var(--border); background:rgba(0,0,0,0.18);
+      padding:7px 10px; border-radius:999px;
     }
+    .heroSide{padding:18px; display:flex; flex-direction:column; gap:12px;}
+    .mini{padding:14px; border-radius:var(--radius2); border:1px solid var(--border); background:var(--panel2);}
+    .miniTitle{font-weight:800; font-size:14px; margin:0 0 6px;}
+    .miniText{margin:0; color:var(--muted); font-size:13px; line-height:1.45;}
 
-    .heroSide{ padding: 18px; display:flex; flex-direction: column; gap: 12px; }
-    .mini{
-      padding: 14px;
-      border-radius: var(--radius2);
-      border: 1px solid var(--border);
-      background: var(--panel2);
-    }
-    .miniTitle{ font-weight: 800; font-size: 14px; margin: 0 0 6px; }
-    .miniText{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
-
-    /* Controls */
-    .controls{
-      margin-top: 18px;
-      display:flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    .controls{margin-top:18px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
     .field{
-      flex: 1 1 280px;
-      display:flex; gap: 10px; align-items: center;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 10px 12px;
+      flex:1 1 280px;
+      display:flex; gap:10px; align-items:center;
+      background:rgba(255,255,255,0.06);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 12px;
     }
     .field input{
-      width: 100%;
-      border: 0;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font-size: 14px;
+      width:100%; border:0; outline:none; background:transparent; color:var(--text); font-size:14px;
     }
-    .field input::placeholder{ color: rgba(255,255,255,0.48); }
+    .field input::placeholder{color:rgba(255,255,255,0.48);}
 
-    .filters{ display:flex; gap: 8px; flex-wrap: wrap; }
+    .filters{display:flex; gap:8px; flex-wrap:wrap;}
     .chip{
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.04);
-      color: rgba(255,255,255,0.8);
-      padding: 9px 10px;
-      border-radius: 999px;
-      font-size: 13px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,0.04);
+      color:rgba(255,255,255,0.8);
+      padding:9px 10px;
+      border-radius:999px;
+      font-size:13px;
       cursor:pointer;
       user-select:none;
     }
     .chip.active{
-      background: rgba(16,185,129,0.18);
-      border-color: rgba(16,185,129,0.35);
-      color: rgba(255,255,255,0.92);
+      background:rgba(16,185,129,0.18);
+      border-color:rgba(16,185,129,0.35);
+      color:rgba(255,255,255,0.92);
     }
 
-    /* Content grid */
-    .grid{
-      margin-top: 18px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      align-items: start;
-    }
+    .grid{margin-top:18px; display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start;}
 
-    /* Map */
-    .mapCard{ padding: 14px; }
-    #map{
-      height: 520px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.14);
-    }
+    .mapCard{padding:14px;}
+    #map{height:520px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.14);}
 
-    /* List */
-    .listCard{ padding: 14px; }
-    .listHeader{ padding: 6px 6px 10px; display:flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-    .listHeader h2{ margin:0; font-size: 15px; }
-    .count{ color: var(--muted); font-size: 12.5px; }
-    .items{ display:flex; flex-direction: column; gap: 10px; }
+    .listCard{padding:14px;}
+    .listHeader{padding:6px 6px 10px; display:flex; justify-content:space-between; align-items:baseline; gap:12px;}
+    .listHeader h2{margin:0; font-size:15px;}
+    .count{color:var(--muted); font-size:12.5px;}
+    .items{display:flex; flex-direction:column; gap:10px;}
 
     .item{
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.05);
-      border-radius: 16px;
-      padding: 14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,0.05);
+      border-radius:16px;
+      padding:14px;
       display:grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
+      grid-template-columns:1fr auto;
+      gap:10px;
       cursor:pointer;
     }
-    .item:hover{ background: rgba(255,255,255,0.07); }
-    .itemTitle{ margin: 0 0 6px; font-weight: 900; letter-spacing: -0.01em; }
-    .meta{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
-    .tags{ display:flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .item:hover{background:rgba(255,255,255,0.07);}
+    .itemTitle{margin:0 0 6px; font-weight:900; letter-spacing:-0.01em;}
+    .meta{margin:0; color:var(--muted); font-size:13px; line-height:1.45;}
+    .tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
     .tag{
-      font-size: 12px;
-      padding: 6px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.16);
-      color: rgba(255,255,255,0.75);
+      font-size:12px;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.16);
+      color:rgba(255,255,255,0.75);
     }
     .score{
-      font-weight: 900;
-      font-size: 13px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      height: fit-content;
-      white-space: nowrap;
+      font-weight:900;
+      font-size:13px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.14);
+      background:rgba(255,255,255,0.06);
+      height:fit-content;
+      white-space:nowrap;
     }
-
-    /* Photo */
     .restoImg{
-      width: 100%;
-      height: 170px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    /* “Page 2” : fiche resto (overlay) */
-    .overlay{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(10px);
-      display: none;
-      z-index: 9999;
-      padding: 18px;
-    }
-    .overlay.show{ display: grid; place-items: center; }
-    .detail{
-      width: min(820px, 100%);
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(12,16,28,0.82);
-      box-shadow: 0 30px 90px rgba(0,0,0,0.55);
-      overflow: hidden;
-    }
-    .detailTop{
-      padding: 16px 16px 0;
-      display:flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-    .detailBody{ padding: 16px; }
-    .detailImg{
-      width: 100%;
-      height: 260px;
-      object-fit: cover;
-      border-top-left-radius: 22px;
-      border-top-right-radius: 22px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
+      width:100%;
+      height:170px;
+      object-fit:cover;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.12);
+      margin-bottom:10px;
       display:block;
     }
-    .detailTitle{
-      margin: 0;
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      font-size: 20px;
-      line-height: 1.2;
-    }
-    .detailMeta{ margin: 8px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
-    .detailNote{ margin: 14px 0 0; font-size: 14.5px; line-height: 1.55; }
-    .detailActions{ margin-top: 14px; display:flex; gap: 10px; flex-wrap: wrap; }
-    .btn.small{ padding: 10px 12px; border-radius: 12px; font-size: 13px; }
-    .xbtn{
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      border-radius: 12px;
-      padding: 10px 12px;
-      cursor:pointer;
-      font-weight: 800;
-    }
-
-    /* Responsive */
-    @media (max-width: 960px){
-      .hero{ grid-template-columns: 1fr; }
-      .grid{ grid-template-columns: 1fr; }
-      #map{ height: 460px; }
-      .detailImg{ height: 220px; }
+    @media (max-width:960px){
+      .hero{grid-template-columns:1fr;}
+      .grid{grid-template-columns:1fr;}
+      #map{height:460px;}
     }
   </style>
 </head>
@@ -379,7 +235,6 @@
       </div>
     </section>
 
-    <!-- SECTION RESTAURANTS -->
     <section id="restaurants" style="scroll-margin-top: 20px;">
       <section class="controls" style="scroll-margin-top: 20px;">
         <div class="field" title="Recherche">
@@ -387,7 +242,6 @@
           <input id="search" placeholder="Rechercher un resto, quartier, tag…" />
         </div>
 
-        <!-- Ville -->
         <div class="field" style="flex: 0 0 200px;">
           <span style="opacity:.7;">📍</span>
           <select id="cityFilter" style="width:100%; background:transparent; border:0; color: white; font-size:14px; outline:none;">
@@ -395,7 +249,6 @@
           </select>
         </div>
 
-        <!-- Quartier -->
         <div class="field" style="flex: 0 0 240px;">
           <span style="opacity:.7;">🏙️</span>
           <select id="neighborhoodFilter" style="width:100%; background:transparent; border:0; color: white; font-size:14px; outline:none;">
@@ -436,7 +289,7 @@
     <section class="card" id="suggestion" style="margin-top: 18px; padding: 18px; scroll-margin-top: 20px;">
       <h2 style="margin: 6px 6px 10px; font-size: 15px;">Suggérer un restaurant</h2>
       <p style="margin: 0 6px 14px; color: rgba(255,255,255,0.66); font-size: 13px; line-height: 1.5;">
-        Pour rester gratuit et simple, ce bouton ouvre un email pré-rempli. (Plus tard, tu pourras ajouter un vrai formulaire.)
+        Pour rester gratuit et simple, ce bouton ouvre un email pré-rempli.
       </p>
       <a class="btn primary" id="mailLink" href="#">📩 Envoyer une suggestion</a>
     </section>
@@ -447,31 +300,8 @@
     </div>
   </div>
 
-  <!-- Overlay “page 2” -->
-  <div class="overlay" id="overlay" aria-hidden="true">
-    <div class="detail" role="dialog" aria-modal="true" aria-label="Fiche restaurant">
-      <img id="detailImg" class="detailImg" alt="" style="display:none;">
-      <div class="detailTop">
-        <div>
-          <h3 class="detailTitle" id="detailTitle">—</h3>
-          <p class="detailMeta" id="detailMeta">—</p>
-        </div>
-        <button class="xbtn" id="closeBtn">Retour</button>
-      </div>
-      <div class="detailBody">
-        <div id="detailTags" class="tags" style="margin-top:6px;"></div>
-        <p class="detailNote" id="detailNote">—</p>
-        <div class="detailActions">
-          <a class="btn small" id="gmapsBtn" target="_blank" rel="noopener">🗺️ Itinéraire</a>
-          <a class="btn small" id="websiteBtn" target="_blank" rel="noopener" style="display:none;">🔗 Site</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // MINI DATABASE
     const restaurants = [
       {
         id: "arepera-du-plateau",
@@ -511,13 +341,13 @@
         city: "Montréal",
         neighborhood: "Centre-ville",
         address: "200 Rue Sainte-Catherine O, Montréal, QC H5B 1B2 (Complexe Desjardins)",
-        lat: 45.0,        // TODO: remplace par la vraie latitude
-        lon: -73.0,       // TODO: remplace par la vraie longitude
+        lat: 45.0,
+        lon: -73.0,
         score: 7.8,
         scoreLabel: "7.8",
-        image: "images/caption.jpg",        // optionnel: ex "images/bellucci.jpg"
+        image: "images/caption.jpg",
         note: "Pâtes fines et bien cuites. On a pris la “fromage” (moins garnie que prévu). Option sans gluten dispo.",
-        tags: ["takeout"], // adapte si besoin
+        tags: ["takeout"],
         price: "$$",
         website: "https://bellucciitalia.com/"
       },
@@ -527,8 +357,8 @@
         city: "Montréal",
         neighborhood: "",
         address: "Montréal (voir succursale)",
-        lat: 45.0,        // TODO: remplace par la vraie latitude
-        lon: -73.0,       // TODO: remplace par la vraie longitude
+        lat: 45.0,
+        lon: -73.0,
         score: 8.2,
         scoreLabel: "8.2",
         image: "images/dominos-gluten-free-pizza-2021-featured.jpg",
@@ -538,16 +368,6 @@
         website: "https://www.dominos.ca/"
       }
     ];
-
-    // MAP
-    const map = L.map('map', { scrollWheelZoom: true })
-      .setView([restaurants[0].lat, restaurants[0].lon], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    const markers = new Map();
 
     function tagLabel(t){
       const dict = {
@@ -562,74 +382,20 @@
       return dict[t] || t;
     }
 
-    // OVERLAY (“page 2”)
-    const overlay = document.getElementById("overlay");
-    const closeBtn = document.getElementById("closeBtn");
-    const detailImg = document.getElementById("detailImg");
-    const detailTitle = document.getElementById("detailTitle");
-    const detailMeta = document.getElementById("detailMeta");
-    const detailNote = document.getElementById("detailNote");
-    const detailTags = document.getElementById("detailTags");
-    const gmapsBtn = document.getElementById("gmapsBtn");
-    const websiteBtn = document.getElementById("websiteBtn");
+    // MAP
+    const map = L.map('map', { scrollWheelZoom: true })
+      .setView([restaurants[0].lat, restaurants[0].lon], 13);
 
-    function openDetail(r){
-      detailTitle.textContent = r.name;
-      detailMeta.textContent = `${r.city} • ${r.neighborhood} • ${r.price} • ${r.address} • ⭐ ${r.scoreLabel ?? r.score}`;
-      detailNote.textContent = r.note || "";
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
 
-      // tags
-      detailTags.innerHTML = "";
-      (r.tags || []).forEach(t => {
-        const tg = document.createElement("div");
-        tg.className = "tag";
-        tg.textContent = tagLabel(t);
-        detailTags.appendChild(tg);
-      });
+    const markers = new Map();
 
-      // image
-      if (r.image){
-        detailImg.style.display = "block";
-        detailImg.src = r.image;
-        detailImg.alt = r.name;
-        detailImg.onerror = () => { detailImg.style.display = "none"; };
-      } else {
-        detailImg.style.display = "none";
-      }
-
-      // buttons
-      const q = encodeURIComponent(r.address || `${r.lat},${r.lon}`);
-      gmapsBtn.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
-
-      if (r.website){
-        websiteBtn.style.display = "inline-flex";
-        websiteBtn.href = r.website;
-      } else {
-        websiteBtn.style.display = "none";
-      }
-
-      overlay.classList.add("show");
-      overlay.setAttribute("aria-hidden", "false");
-    }
-
-    function closeDetail(){
-      overlay.classList.remove("show");
-      overlay.setAttribute("aria-hidden", "true");
-    }
-
-    closeBtn.addEventListener("click", closeDetail);
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) closeDetail();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && overlay.classList.contains("show")) closeDetail();
-    });
-
-    // RENDER LIST + MARKERS
+    // RENDER
     function render(list){
       const items = document.getElementById("items");
       items.innerHTML = "";
-
       document.getElementById("count").textContent =
         list.length + (list.length > 1 ? " restos" : " resto");
 
@@ -693,10 +459,12 @@
           if (m) m.openPopup();
         };
 
-        const open = () => openDetail(r);
+        const go = () => {
+          window.location.href = `restaurant.html?id=${encodeURIComponent(r.id)}`;
+        };
 
-        el.addEventListener("click", () => { focus(); open(); });
-        el.addEventListener("keydown", (e) => { if (e.key === "Enter") { focus(); open(); } });
+        el.addEventListener("click", () => { focus(); go(); });
+        el.addEventListener("keydown", (e) => { if (e.key === "Enter") { focus(); go(); } });
 
         items.appendChild(el);
 
@@ -707,12 +475,15 @@
               ${r.city} • ${r.neighborhood} • ${r.price}
             </div>
             <div style="font-size: 12.5px; margin-bottom: 10px;">${r.address}</div>
-            <div style="font-size: 12.5px; opacity:.9;">⭐ ${r.scoreLabel ?? r.score}${(r.tags || []).length ? " • " + (r.tags || []).map(tagLabel).join(" · ") : ""}</div>
+            <div style="font-size: 12.5px; opacity:.9;">
+              ⭐ ${r.scoreLabel ?? r.score}
+              ${(r.tags || []).length ? " • " + (r.tags || []).map(tagLabel).join(" · ") : ""}
+            </div>
           </div>
         `;
 
         const marker = L.marker([r.lat, r.lon]).addTo(map).bindPopup(popupHtml);
-        marker.on("click", () => openDetail(r));
+        marker.on("click", () => go());
         markers.set(r.id, marker);
       });
 
@@ -721,7 +492,7 @@
       }
     }
 
-    // SEARCH + FILTERS
+    // FILTERS
     const activeFilters = new Set();
     const citySelect = document.getElementById("cityFilter");
     const neighborhoodSelect = document.getElementById("neighborhoodFilter");
@@ -754,7 +525,6 @@
         const matchFilters = activeFilters.size === 0
           ? true
           : [...activeFilters].every(f => (r.tags || []).includes(f));
-
         const matchCity = !city || r.city === city;
         const matchNeighborhood = !neighborhood || r.neighborhood === neighborhood;
 
@@ -771,13 +541,8 @@
     document.querySelectorAll(".chip").forEach(ch => {
       ch.addEventListener("click", () => {
         const f = ch.dataset.filter;
-        if (activeFilters.has(f)) {
-          activeFilters.delete(f);
-          ch.classList.remove("active");
-        } else {
-          activeFilters.add(f);
-          ch.classList.add("active");
-        }
+        if (activeFilters.has(f)) { activeFilters.delete(f); ch.classList.remove("active"); }
+        else { activeFilters.add(f); ch.classList.add("active"); }
         applyFilters();
       });
     });
@@ -793,6 +558,247 @@
     // INIT
     buildLocationFilters();
     applyFilters();
+  </script>
+</body>
+</html>
+✅ 2) restaurant.html (à créer à la racine du repo)
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AddictOCéliaque — Restaurant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0f19; --panel:rgba(255,255,255,0.08); --border:rgba(255,255,255,0.12);
+      --text:rgba(255,255,255,0.92); --muted:rgba(255,255,255,0.66);
+      --shadow:0 20px 60px rgba(0,0,0,0.45); --radius:18px; --max:980px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(99,102,241,0.35), transparent 60%),
+        radial-gradient(900px 500px at 85% 10%, rgba(16,185,129,0.25), transparent 55%),
+        radial-gradient(1000px 800px at 30% 120%, rgba(244,63,94,0.18), transparent 60%),
+        var(--bg);
+      min-height:100vh;
+    }
+    a{color:inherit; text-decoration:none;}
+    .wrap{max-width:var(--max); margin:0 auto; padding:22px 18px 60px;}
+    .card{
+      background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow:var(--shadow); backdrop-filter: blur(14px);
+      overflow:hidden;
+    }
+    .top{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:-0.02em;}
+    .logo{
+      width:34px; height:34px; border-radius:12px;
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      display:flex; align-items:center; justify-content:center; font-weight:900;
+    }
+    .btn{
+      display:inline-flex; gap:10px; align-items:center; cursor:pointer;
+      padding:10px 12px; border-radius:12px; border:1px solid var(--border);
+      background:rgba(255,255,255,0.06); font-weight:800; font-size:13px;
+      color:var(--text);
+    }
+    .heroImg{width:100%; height:280px; object-fit:cover; display:none; border-bottom:1px solid rgba(255,255,255,0.10);}
+    .body{padding:16px;}
+    h1{margin:0; font-size:26px; letter-spacing:-0.03em;}
+    .meta{margin:8px 0 0; color:var(--muted); font-size:14px; line-height:1.5;}
+    .note{margin:14px 0 0; font-size:15px; line-height:1.6;}
+    .tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:12px;}
+    .tag{
+      font-size:12px; padding:6px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.16); color:rgba(255,255,255,0.75);
+    }
+    .navRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+    select{
+      width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border);
+      background:rgba(0,0,0,0.18); color:var(--text); outline:none;
+    }
+    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+    @media (max-width: 700px){ .heroImg{height:220px;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand"><div class="logo">C</div> AddictOCéliaque</div>
+      <a class="btn" href="./">← Retour</a>
+    </div>
+
+    <div class="card">
+      <img id="img" class="heroImg" alt="">
+      <div class="body">
+        <h1 id="title">—</h1>
+        <div class="meta" id="meta">—</div>
+        <div class="tags" id="tags"></div>
+        <p class="note" id="note"></p>
+
+        <div class="actions">
+          <a class="btn" id="gmaps" target="_blank" rel="noopener">🗺️ Itinéraire</a>
+          <a class="btn" id="website" target="_blank" rel="noopener" style="display:none;">🔗 Site</a>
+        </div>
+
+        <div class="navRow">
+          <div style="flex:1 1 320px;">
+            <div style="font-weight:900; margin:10px 0 8px;">Naviguer par restaurant</div>
+            <select id="picker"></select>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+            <button class="btn" id="prev">← Précédent</button>
+            <button class="btn" id="next">Suivant →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const restaurants = [
+      {
+        id: "arepera-du-plateau",
+        name: "Arepera du Plateau",
+        city: "Montréal",
+        neighborhood: "Plateau-Mont-Royal",
+        address: "73 Rue Prince-Arthur E, Montréal, QC H2X 1B4",
+        lat: 45.514775,
+        lon: -73.571903,
+        score: 9.0,
+        scoreLabel: "9.0",
+        image: "images/arepera83.jpg",
+        note: "Je recommande à 100% pour la nourriture, juste un tout petit peu cher.",
+        tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
+        price: "$$$",
+        website: "https://www.arepera.ca/"
+      },
+      {
+        id: "le-marquis-signature-sante",
+        name: "Le Marquis Signature santé",
+        city: "Montréal",
+        neighborhood: "Vieux-Montréal",
+        address: "194 Saint-Paul St W, Montreal, Quebec H2Y 1Z9",
+        lat: 45.5017,
+        lon: -73.5673,
+        score: 4.6,
+        scoreLabel: "4.6",
+        image: "images/575_Le-marquis-sans-gluten-vieux-montreal-7.jpg",
+        note: "Parfait pour congeler et se faire de merveilleux petits déjeuner, je recommande à 100% !",
+        tags: [],
+        price: "$$",
+        website: ""
+      },
+      {
+        id: "bellucci-italia-complexe-desjardins",
+        name: "Bellucci Italia",
+        city: "Montréal",
+        neighborhood: "Centre-ville",
+        address: "200 Rue Sainte-Catherine O, Montréal, QC H5B 1B2 (Complexe Desjardins)",
+        lat: 45.0,
+        lon: -73.0,
+        score: 7.8,
+        scoreLabel: "7.8",
+        image: "images/caption.jpg",
+        note: "Pâtes fines et bien cuites. On a pris la “fromage” (moins garnie que prévu). Option sans gluten dispo.",
+        tags: ["takeout"],
+        price: "$$",
+        website: "https://bellucciitalia.com/"
+      },
+      {
+        id: "dominos-pizza-gf",
+        name: "Domino’s Pizza",
+        city: "Montréal",
+        neighborhood: "",
+        address: "Montréal (voir succursale)",
+        lat: 45.0,
+        lon: -73.0,
+        score: 8.2,
+        scoreLabel: "8.2",
+        image: "images/dominos-gluten-free-pizza-2021-featured.jpg",
+        note: "Option pâte sans gluten. Très bonne ! (Attention: risque de contamination croisée selon les succursales.)",
+        tags: ["pizza", "takeout"],
+        price: "$",
+        website: "https://www.dominos.ca/"
+      }
+    ];
+
+    function tagLabel(t){
+      const dict = {
+        dedicated_gf: "Dédié GF",
+        brunch: "Brunch",
+        takeout: "Takeout",
+        pizza: "Pizza",
+        vegan: "Vegan",
+        wifi: "Wi-Fi",
+        happy_hour: "Happy hour"
+      };
+      return dict[t] || t;
+    }
+
+    const qs = new URLSearchParams(location.search);
+    const id = qs.get("id");
+
+    const idx = restaurants.findIndex(r => r.id === id);
+    const currentIndex = idx >= 0 ? idx : 0;
+    const r = restaurants[currentIndex];
+
+    document.getElementById("title").textContent = r.name;
+    document.getElementById("meta").textContent =
+      `${r.city}${r.neighborhood ? " • " + r.neighborhood : ""} • ${r.price} • ${r.address} • ⭐ ${r.scoreLabel ?? r.score}`;
+
+    document.getElementById("note").textContent = r.note || "";
+
+    const tagsEl = document.getElementById("tags");
+    tagsEl.innerHTML = "";
+    (r.tags || []).forEach(t => {
+      const el = document.createElement("div");
+      el.className = "tag";
+      el.textContent = tagLabel(t);
+      tagsEl.appendChild(el);
+    });
+
+    const img = document.getElementById("img");
+    if (r.image){
+      img.style.display = "block";
+      img.src = r.image;
+      img.alt = r.name;
+      img.onerror = () => img.style.display = "none";
+    }
+
+    const q = encodeURIComponent(r.address || `${r.lat},${r.lon}`);
+    document.getElementById("gmaps").href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+
+    const websiteBtn = document.getElementById("website");
+    if (r.website){
+      websiteBtn.style.display = "inline-flex";
+      websiteBtn.href = r.website;
+    }
+
+    const picker = document.getElementById("picker");
+    picker.innerHTML = restaurants.map(rr =>
+      `<option value="${rr.id}" ${rr.id === r.id ? "selected" : ""}>${rr.name} — ${rr.city}${rr.neighborhood ? " ("+rr.neighborhood+")" : ""}</option>`
+    ).join("");
+
+    picker.addEventListener("change", () => {
+      location.href = `restaurant.html?id=${encodeURIComponent(picker.value)}`;
+    });
+
+    document.getElementById("prev").addEventListener("click", () => {
+      const j = (currentIndex <= 0 ? restaurants.length - 1 : currentIndex - 1);
+      location.href = `restaurant.html?id=${encodeURIComponent(restaurants[j].id)}`;
+    });
+
+    document.getElementById("next").addEventListener("click", () => {
+      const j = (currentIndex >= restaurants.length - 1 ? 0 : currentIndex + 1);
+      location.href = `restaurant.html?id=${encodeURIComponent(restaurants[j].id)}`;
+    });
   </script>
 </body>
 </html>
