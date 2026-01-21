@@ -1,0 +1,66 @@
+window.RESTAURANTS = [
+  {
+    id: "arepera-du-plateau",
+    name: "Arepera du Plateau",
+    city: "Montréal",
+    neighborhood: "Plateau-Mont-Royal",
+    address: "73 Rue Prince-Arthur E, Montréal, QC H2X 1B4",
+    lat: 45.514775,
+    lon: -73.571903,
+    gf_level: "dedicated", // dedicated | option | chain | unknown
+    score: 9.0,
+    price: "$$$",
+    tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
+    image: "images/arepera83.jpg",
+    note: "Je recommande à 100% pour la nourriture, juste un tout petit peu cher.",
+    website: "https://www.arepera.ca/"
+  },
+  {
+    id: "le-marquis-signature-sante",
+    name: "Le Marquis Signature santé",
+    city: "Montréal",
+    neighborhood: "Vieux-Montréal",
+    address: "194 Saint-Paul St W, Montreal, Quebec H2Y 1Z9",
+    lat: 45.5017,
+    lon: -73.5673,
+    gf_level: "option",
+    score: 4.6,
+    price: "$$",
+    tags: [],
+    image: "images/575_Le-marquis-sans-gluten-vieux-montreal-7.jpg",
+    note: "Parfait pour congeler et se faire de merveilleux petits déjeuner, je recommande à 100% !",
+    website: ""
+  },
+  {
+    id: "bellucci-italia-complexe-desjardins",
+    name: "Bellucci Italia",
+    city: "Montréal",
+    neighborhood: "Centre-ville",
+    address: "200 Rue Sainte-Catherine O, Montréal, QC H5B 1B2 (Complexe Desjardins)",
+    lat: 45.5049,
+    lon: -73.5698,
+    gf_level: "option",
+    score: 7.8,
+    price: "$$",
+    tags: ["takeout"],
+    image: "images/caption.jpg",
+    note: "Pâtes fines et bien cuites. On a pris la “fromage” (moins garnie que prévu). Option sans gluten dispo.",
+    website: "https://bellucciitalia.com/"
+  },
+  {
+    id: "dominos-pizza-gf",
+    name: "Domino’s Pizza (pâte sans gluten)",
+    city: "Montréal",
+    neighborhood: "",
+    address: "Montréal (voir succursale)",
+    lat: 45.5019,
+    lon: -73.5674,
+    gf_level: "chain",
+    score: 8.2,
+    price: "$",
+    tags: ["pizza", "takeout"],
+    image: "images/dominos-gluten-free-pizza-2021-featured.jpg",
+    note: "Option pâte sans gluten. Très bonne !",
+    website: "https://www.dominos.ca/"
+  }
+];
