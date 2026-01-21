@@ -4,197 +4,435 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Restaurant — AddictOCéliaque</title>
+  <meta name="description" content="Fiche restaurant sans gluten testée (AddictOCéliaque)." />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
   <style>
-    body{margin:0;font-family:Inter,system-ui,Arial;background:#0b0f19;color:rgba(255,255,255,.92)}
-    .wrap{max-width:900px;margin:0 auto;padding:18px}
-    .card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:16px}
-    .btn{display:inline-flex;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:inherit;text-decoration:none;font-weight:800}
-    .title{margin:0;font-weight:900;font-size:26px}
-    .muted{color:rgba(255,255,255,.66);line-height:1.5}
-    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-    .tag{font-size:12px;padding:6px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.16);color:rgba(255,255,255,.75)}
-    img{width:100%;height:300px;object-fit:cover;border-radius:14px;border:1px solid rgba(255,255,255,.12);margin:12px 0;display:none}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px}
-    select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:white;padding:10px 12px;border-radius:12px;outline:none;min-width:260px}
+    :root{
+      --bg:#0b0f19;
+      --panel: rgba(255,255,255,0.08);
+      --panel2: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.66);
+      --border: rgba(255,255,255,0.12);
+      --shadow: 0 20px 60px rgba(0,0,0,0.45);
+      --radius: 18px;
+      --radius2: 14px;
+      --max: 1120px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(99,102,241,0.35), transparent 60%),
+        radial-gradient(900px 500px at 85% 10%, rgba(16,185,129,0.25), transparent 55%),
+        radial-gradient(1000px 800px at 30% 120%, rgba(244,63,94,0.18), transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+    }
+    a{ color: inherit; text-decoration:none; }
+    .wrap{ max-width: var(--max); margin: 0 auto; padding: 22px 18px 60px; }
+
+    /* Top bar */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 10px 6px; gap: 12px;
+    }
+    .brand{ display:flex; align-items:center; gap: 10px; font-weight: 800; letter-spacing:-0.02em; }
+    .logo{
+      width:34px; height:34px; border-radius:12px;
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      box-shadow: 0 10px 30px rgba(99,102,241,0.25);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; font-size:18px; color: rgba(255,255,255,0.95);
+    }
+    .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; color: var(--muted); font-weight:600; font-size:14px; }
+    .nav a{ padding: 8px 10px; border-radius:999px; }
+    .nav a:hover{ background: rgba(255,255,255,0.06); color: var(--text); }
+
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .grid{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+      align-items:start;
+    }
+
+    /* Sidebar list */
+    .side{ padding: 14px; }
+    .sideTitle{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding: 6px 6px 10px; }
+    .sideTitle h2{ margin:0; font-size:15px; }
+    .count{ color: var(--muted); font-size:12.5px; }
+    .sideSearch{
+      margin: 0 6px 10px;
+      display:flex; gap:10px; align-items:center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .sideSearch input{
+      width:100%;
+      border:0; outline:none;
+      background:transparent;
+      color: var(--text);
+      font-size:14px;
+    }
+    .sideSearch input::placeholder{ color: rgba(255,255,255,0.48); }
+    .list{ display:flex; flex-direction:column; gap:10px; padding: 0 6px 6px; max-height: calc(100vh - 220px); overflow:auto; }
+    .row{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 12px;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .row:hover{ background: rgba(255,255,255,0.07); }
+    .row.active{
+      outline: 2px solid rgba(16,185,129,0.30);
+      background: rgba(16,185,129,0.10);
+    }
+    .rowName{ font-weight:900; margin:0 0 4px; letter-spacing:-0.01em; }
+    .rowMeta{ margin:0; color: var(--muted); font-size:12.5px; line-height:1.35; }
+    .rowScore{
+      font-weight:900;
+      font-size:12.5px;
+      padding: 7px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      height: fit-content;
+      white-space:nowrap;
+    }
+
+    /* Detail */
+    .detail{ overflow:hidden; }
+    .heroImg{
+      width:100%;
+      height: 320px;
+      object-fit: cover;
+      display:block;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.2);
+    }
+    .detailTop{ padding: 16px; display:flex; justify-content:space-between; align-items:flex-start; gap: 12px; }
+    .title{ margin:0; font-size: 22px; font-weight: 900; letter-spacing:-0.02em; line-height:1.15; }
+    .meta{ margin: 8px 0 0; color: var(--muted); font-size: 13.5px; line-height:1.5; }
+    .pillRow{ display:flex; gap: 8px; flex-wrap:wrap; margin-top: 10px; }
+    .pill{
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      padding: 7px 10px;
+      border-radius: 999px;
+    }
+    .note{ padding: 0 16px 16px; margin:0; font-size: 15px; line-height:1.6; }
+    .actions{ padding: 0 16px 18px; display:flex; gap:10px; flex-wrap:wrap; }
+    .btn{
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-weight: 800;
+      font-size: 14px;
+      display:inline-flex;
+      gap: 10px;
+      align-items:center;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
+      border: 0;
+      box-shadow: 0 14px 40px rgba(99,102,241,0.22);
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    .empty{
+      padding: 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height:1.6;
+    }
+
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      .list{ max-height: 340px; }
+      .heroImg{ height: 240px; }
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <div class="row">
-      <a href="./index.html" style="font-weight:900; text-decoration:none; color:inherit">
-  AddictOCéliaque
-</a>
-<a class="btn" href="./index.html">← Retour</a>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">C</div>
+        <a href="./index.html" style="font-weight:900; color:inherit">AddictOCéliaque</a>
+      </div>
+      <div class="nav">
+        <a href="./index.html#restaurants">Restaurants</a>
+        <a href="./index.html#carte">Carte</a>
+        <a href="./index.html#suggestion">Suggérer</a>
+      </div>
     </div>
 
-    <!-- Si ça plante, on affichera l'erreur ici -->
-    <div id="err"></div>
-
-    <div class="card" style="margin-top:14px">
-      <h1 class="title" id="name">Chargement…</h1>
-      <div class="muted" id="meta">—</div>
-
-      <img id="photo" alt="">
-
-      <div class="tags" id="tags"></div>
-      <p class="muted" id="note" style="margin-top:10px">—</p>
-
-      <div class="row">
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn" id="gmaps" target="_blank" rel="noopener">🗺️ Itinéraire</a>
-          <a class="btn" id="site" target="_blank" rel="noopener" style="display:none">🔗 Site</a>
+    <div class="grid">
+      <!-- Sidebar -->
+      <aside class="card side">
+        <div class="sideTitle">
+          <h2>Restaurants</h2>
+          <div class="count" id="count">—</div>
         </div>
-        <select id="picker" aria-label="Choisir un restaurant"></select>
-      </div>
 
-      <div class="row">
-        <button class="btn" id="prev">← Précédent</button>
-        <button class="btn" id="next">Suivant →</button>
-      </div>
+        <div class="sideSearch" title="Recherche">
+          <span style="opacity:.7;">🔎</span>
+          <input id="q" placeholder="Rechercher un resto…" />
+        </div>
+
+        <div class="list" id="list"></div>
+      </aside>
+
+      <!-- Detail -->
+      <main class="card detail" id="detail">
+        <img id="img" class="heroImg" alt="" style="display:none;">
+        <div class="detailTop">
+          <div>
+            <h1 class="title" id="name">—</h1>
+            <p class="meta" id="meta">—</p>
+            <div class="pillRow" id="tags"></div>
+          </div>
+          <div class="rowScore" id="score">⭐ —</div>
+        </div>
+        <p class="note" id="note">—</p>
+        <div class="actions">
+          <a class="btn primary" id="gmaps" target="_blank" rel="noopener">🗺️ Itinéraire</a>
+          <a class="btn" id="site" target="_blank" rel="noopener" style="display:none;">🔗 Site</a>
+          <button class="btn" id="copy">📎 Copier le lien</button>
+        </div>
+        <div class="empty" id="empty" style="display:none;">
+          Resto introuvable. Retourne à la liste et choisis un restaurant.
+        </div>
+      </main>
     </div>
   </div>
 
+  <!-- Data files -->
+  <script src="./restaurants.js"></script>
+  <script src="./utils.js"></script>
+
   <script>
-    // Affiche TOUTE erreur JS à l'écran (au lieu d'une page blanche)
-    window.addEventListener("error", (e) => {
-      const box = document.getElementById("err");
-      box.innerHTML =
-        `<div class="card" style="border-color:rgba(255,0,0,.35);background:rgba(255,0,0,.10)">
-          <b>Erreur JS :</b> ${String(e.message || e.error || "inconnue")}
-        </div>`;
-    });
+    // ---- Helpers (fallback si utils.js ne contient pas tout) ----
+    const getParam = (k) => new URLSearchParams(window.location.search).get(k);
+    const safe = (v, fallback="—") => (v === undefined || v === null || v === "" ? fallback : v);
 
-    // Données (doivent contenir les mêmes ids que index.html)
-    const restaurants = [
-      {
-        id:"arepera-du-plateau",
-        name:"Arepera du Plateau",
-        city:"Montréal",
-        neighborhood:"Plateau-Mont-Royal",
-        address:"73 Rue Prince-Arthur E, Montréal, QC H2X 1B4",
-        price:"$$$",
-        scoreLabel:"9.0",
-        image:"images/arepera83.jpg",
-        note:"Je recommande à 100% pour la nourriture, juste un tout petit peu cher.",
-        tags:["dedicated_gf","vegan","wifi","happy_hour"],
-        website:"https://www.arepera.ca/"
-      },
-      {
-        id:"le-marquis-signature-sante",
-        name:"Le Marquis Signature santé",
-        city:"Montréal",
-        neighborhood:"Vieux-Montréal",
-        address:"194 Saint-Paul St W, Montreal, Quebec H2Y 1Z9",
-        price:"$$",
-        scoreLabel:"4.6",
-        image:"images/575_Le-marquis-sans-gluten-vieux-montreal-7.jpg",
-        note:"Parfait pour congeler et se faire de merveilleux petits déjeuner, je recommande à 100% !",
-        tags:[],
-        website:""
-      },
-      {
-        id:"bellucci-italia-complexe-desjardins",
-        name:"Bellucci Italia",
-        city:"Montréal",
-        neighborhood:"Centre-ville",
-        address:"200 Rue Sainte-Catherine O, Montréal, QC H5B 1B2 (Complexe Desjardins)",
-        price:"$$",
-        scoreLabel:"7.8",
-        image:"images/caption.jpg",
-        note:"Pâtes fines et bien cuites. On a pris la “fromage” (moins garnie que prévu). Option sans gluten dispo.",
-        tags:["takeout"],
-        website:"https://bellucciitalia.com/"
-      },
-      {
-        id:"dominos-pizza-gf",
-        name:"Domino’s Pizza",
-        city:"Montréal",
-        neighborhood:"",
-        address:"Montréal (voir succursale)",
-        price:"$",
-        scoreLabel:"8.2",
-        image:"images/dominos-gluten-free-pizza-2021-featured.jpg",
-        note:"Option pâte sans gluten. Très bonne ! (Attention: risque de contamination croisée selon les succursales.)",
-        tags:["pizza","takeout"],
-        website:"https://www.dominos.ca/"
-      }
-    ];
+    // On supporte 2 formats :
+    // 1) window.RESTAURANTS (recommandé)
+    // 2) const restaurants = [...] (ancien)
+    const DATA = (window.RESTAURANTS && Array.isArray(window.RESTAURANTS))
+      ? window.RESTAURANTS
+      : (window.restaurants && Array.isArray(window.restaurants))
+        ? window.restaurants
+        : [];
 
-    const tagDict = {
-      dedicated_gf:"Dédié GF", brunch:"Brunch", takeout:"Takeout", pizza:"Pizza",
-      vegan:"Vegan", wifi:"Wi-Fi", happy_hour:"Happy hour"
+    const tagLabel = (t) => {
+      const dict = {
+        dedicated_gf: "Dédié GF",
+        brunch: "Brunch",
+        takeout: "Takeout",
+        pizza: "Pizza",
+        vegan: "Vegan",
+        wifi: "Wi-Fi",
+        happy_hour: "Happy hour"
+      };
+      return dict[t] || t;
     };
-    const tagLabel = (t) => tagDict[t] || t;
 
-    const $ = (id) => document.getElementById(id);
+    const listEl = document.getElementById("list");
+    const countEl = document.getElementById("count");
+    const qEl = document.getElementById("q");
 
-    const qs = new URLSearchParams(location.search);
-    const id = qs.get("id");
-    let idx = restaurants.findIndex(r => r.id === id);
-    if (idx < 0) idx = 0;
+    const imgEl = document.getElementById("img");
+    const nameEl = document.getElementById("name");
+    const metaEl = document.getElementById("meta");
+    const tagsEl = document.getElementById("tags");
+    const noteEl = document.getElementById("note");
+    const scoreEl = document.getElementById("score");
+    const gmapsEl = document.getElementById("gmaps");
+    const siteEl = document.getElementById("site");
+    const copyBtn = document.getElementById("copy");
+    const emptyEl = document.getElementById("empty");
 
-    function render(i){
-      const r = restaurants[i];
-      document.title = r.name + " — AddictOCéliaque";
-
-      $("name").textContent = r.name;
-      $("meta").textContent =
-        `${r.city}${r.neighborhood ? " • " + r.neighborhood : ""} • ${r.price} • ${r.address} • ⭐ ${r.scoreLabel}`;
-
-      $("note").textContent = r.note || "";
-
-      $("tags").innerHTML = "";
-      (r.tags || []).forEach(t => {
-        const el = document.createElement("div");
-        el.className = "tag";
-        el.textContent = tagLabel(t);
-        $("tags").appendChild(el);
+    function renderList(activeId, query=""){
+      const q = query.trim().toLowerCase();
+      const filtered = DATA.filter(r => {
+        const hay = [r.name, r.city, r.neighborhood, r.address, r.note, ...(r.tags||[])].join(" ").toLowerCase();
+        return !q || hay.includes(q);
       });
 
-      // image
-      if (r.image){
-        $("photo").style.display = "block";
-        $("photo").src = r.image;
-        $("photo").alt = r.name;
-        $("photo").onerror = () => $("photo").style.display = "none";
-      } else {
-        $("photo").style.display = "none";
-      }
+      countEl.textContent = filtered.length + (filtered.length > 1 ? " restos" : " resto");
+      listEl.innerHTML = "";
 
-      // liens
-      const q = encodeURIComponent(r.address);
-      $("gmaps").href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+      filtered.forEach(r => {
+        const row = document.createElement("div");
+        row.className = "row" + (r.id === activeId ? " active" : "");
+        row.tabIndex = 0;
 
-      if (r.website){
-        $("site").style.display = "inline-flex";
-        $("site").href = r.website;
-      } else {
-        $("site").style.display = "none";
-      }
+        const left = document.createElement("div");
+        const n = document.createElement("p");
+        n.className = "rowName";
+        n.textContent = safe(r.name, "—");
 
-      $("picker").value = r.id;
-      history.replaceState(null, "", `restaurant.html?id=${encodeURIComponent(r.id)}`);
+        const m = document.createElement("p");
+        m.className = "rowMeta";
+        m.textContent = `${safe(r.city)} • ${safe(r.neighborhood, "—")}`;
+
+        left.appendChild(n);
+        left.appendChild(m);
+
+        const sc = document.createElement("div");
+        sc.className = "rowScore";
+        sc.textContent = `⭐ ${safe(r.scoreLabel ?? r.score, "—")}`;
+
+        row.appendChild(left);
+        row.appendChild(sc);
+
+        const go = () => {
+          window.location.href = `restaurant.html?id=${encodeURIComponent(r.id)}`;
+        };
+        row.addEventListener("click", go);
+        row.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+
+        listEl.appendChild(row);
+      });
+
+      return filtered;
     }
 
-    $("picker").innerHTML = restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
-    $("picker").addEventListener("change", () => {
-      idx = restaurants.findIndex(r => r.id === $("picker").value);
-      render(idx);
-    });
+    function showDetail(id){
+      const r = DATA.find(x => x.id === id);
 
-    $("prev").addEventListener("click", () => {
-      idx = idx <= 0 ? restaurants.length - 1 : idx - 1;
-      render(idx);
-    });
-    $("next").addEventListener("click", () => {
-      idx = idx >= restaurants.length - 1 ? 0 : idx + 1;
-      render(idx);
-    });
+      if (!r){
+        emptyEl.style.display = "block";
+        imgEl.style.display = "none";
+        nameEl.textContent = "Restaurant introuvable";
+        metaEl.textContent = "—";
+        noteEl.textContent = "—";
+        scoreEl.textContent = "⭐ —";
+        tagsEl.innerHTML = "";
+        gmapsEl.href = "./index.html";
+        siteEl.style.display = "none";
+        return;
+      }
 
-    render(idx);
+      emptyEl.style.display = "none";
+
+      document.title = `${r.name} — AddictOCéliaque`;
+
+      nameEl.textContent = safe(r.name);
+      metaEl.textContent = `${safe(r.city)} • ${safe(r.neighborhood, "—")} • ${safe(r.price, "—")} • ${safe(r.address)}`;
+      noteEl.textContent = safe(r.note, "");
+
+      scoreEl.textContent = `⭐ ${safe(r.scoreLabel ?? r.score, "—")}`;
+
+      // Image
+      if (r.image){
+        imgEl.style.display = "block";
+        imgEl.src = r.image;
+        imgEl.alt = r.name || "";
+        imgEl.onerror = () => { imgEl.style.display = "none"; };
+      } else {
+        imgEl.style.display = "none";
+      }
+
+      // Tags
+      tagsEl.innerHTML = "";
+      (r.tags || []).forEach(t => {
+        const p = document.createElement("div");
+        p.className = "pill";
+        p.textContent = tagLabel(t);
+        tagsEl.appendChild(p);
+      });
+
+      // Google maps
+      const q = encodeURIComponent(r.address || `${r.lat},${r.lon}`);
+      gmapsEl.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+
+      // Website
+      if (r.website){
+        siteEl.style.display = "inline-flex";
+        siteEl.href = r.website;
+      } else {
+        siteEl.style.display = "none";
+      }
+
+      // Copy link
+      copyBtn.onclick = async () => {
+        const url = window.location.href;
+        try{
+          await navigator.clipboard.writeText(url);
+          copyBtn.textContent = "✅ Lien copié";
+          setTimeout(() => (copyBtn.textContent = "📎 Copier le lien"), 1200);
+        } catch {
+          // fallback
+          window.prompt("Copie ce lien :", url);
+        }
+      };
+    }
+
+    function init(){
+      const id = getParam("id") || (DATA[0] && DATA[0].id);
+      renderList(id, "");
+      showDetail(id);
+
+      // Search in sidebar
+      qEl.addEventListener("input", () => {
+        const activeId = getParam("id");
+        renderList(activeId, qEl.value);
+      });
+
+      // Keyboard navigation (↑ ↓) dans la liste filtrée
+      document.addEventListener("keydown", (e) => {
+        if (!["ArrowUp","ArrowDown"].includes(e.key)) return;
+        const activeId = getParam("id");
+        const filtered = DATA.filter(r => {
+          const q = qEl.value.trim().toLowerCase();
+          if (!q) return true;
+          const hay = [r.name, r.city, r.neighborhood, r.address, r.note, ...(r.tags||[])].join(" ").toLowerCase();
+          return hay.includes(q);
+        });
+        const idx = filtered.findIndex(r => r.id === activeId);
+        if (idx === -1) return;
+
+        e.preventDefault();
+        const next = (e.key === "ArrowDown")
+          ? filtered[Math.min(idx+1, filtered.length-1)]
+          : filtered[Math.max(idx-1, 0)];
+
+        if (next && next.id !== activeId){
+          window.location.href = `restaurant.html?id=${encodeURIComponent(next.id)}`;
+        }
+      });
+    }
+
+    init();
   </script>
 </body>
 </html>
