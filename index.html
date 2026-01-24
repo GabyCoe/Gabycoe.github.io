@@ -657,16 +657,22 @@
           </div>
         `;
 
-        const marker = L.marker([r.lat, r.lon], { icon: markerIcon(r.gfSafety) })
-          .addTo(map)
-          .bindPopup(popupHtml);
+        // ⚠️ si lat/lon manquants ou = 0, on n'ajoute pas le marker (sinon ça casse la carte)
+        if (Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0) {
+          const marker = L.marker([r.lat, r.lon], { icon: markerIcon(r.gfSafety) })
+            .addTo(map)
+            .bindPopup(popupHtml);
 
-        marker.on("click", () => go());
-        markers.set(r.id, marker);
+          marker.on("click", () => go());
+          markers.set(r.id, marker);
+        }
       });
 
       if (list.length === 1){
-        map.setView([list[0].lat, list[0].lon], 13);
+        const one = list[0];
+        if (Number.isFinite(one.lat) && Number.isFinite(one.lon) && one.lat !== 0 && one.lon !== 0) {
+          map.setView([one.lat, one.lon], 13);
+        }
       }
     }
 
@@ -763,23 +769,28 @@
 
     // ---------------------------
     // ✅ LOAD depuis Google Sheet + fallback sur restaurants.js si besoin
-    // ✅ IMPORTANT: ton endpoint renvoie DEJA filtré (approved par défaut)
+    // ✅ IMPORTANT: ton endpoint renvoie déjà filtré (approved par défaut),
+    // mais on force ?status=approved pour être clair.
     // ---------------------------
     function normalizeFromSheet(row){
-      const tagsArr = (row.tags || "")
-        .split(",")
-        .map(t => t.trim())
-        .filter(Boolean);
+      // ✅ tags peut être string OU array (sinon ça casse avec split)
+      let tagsArr = [];
+      if (Array.isArray(row.tags)) {
+        tagsArr = row.tags.map(t => String(t).trim()).filter(Boolean);
+      } else if (typeof row.tags === "string") {
+        tagsArr = row.tags.split(",").map(t => t.trim()).filter(Boolean);
+      } else if (row.tags != null) {
+        tagsArr = [String(row.tags).trim()].filter(Boolean);
+      }
 
-      // mapping GF : ton Apps Script renvoie "gf" (ex: "100% gluten free")
-      // on transforme en gfSafety (dedicated/option/risk) pour le site
+      // mapping GF : Apps Script renvoie "gf"
       const gfText = String(row.gf || row.gfSafety || "").toLowerCase();
       let gfSafety = "option";
       if (gfText.includes("100%") || gfText.includes("dédi") || gfText.includes("dedic")) gfSafety = "dedicated";
       else if (gfText.includes("risque") || gfText.includes("contamin")) gfSafety = "risk";
       else if (gfText.includes("option")) gfSafety = "option";
 
-      const r = {
+      return {
         id: row.id,
         name: row.name,
         city: row.city,
@@ -789,29 +800,25 @@
         lon: Number(row.lon),
         score: row.score ? Number(row.score) : null,
         scoreLabel: row.score ? String(row.score) : "—",
-        image: row.photo_url || row.image || "",
+        // ✅ ton Apps Script renvoie "image" (qui contient photo_url). On garde les deux.
+        image: row.image || row.photo_url || "",
         note: row.note || "",
-        tags: Array.isArray(row.tags) ? row.tags : tagsArr,
+        tags: tagsArr,
         price: row.price || "",
         website: row.website || "",
         gfSafety
       };
-      return r;
     }
 
     async function loadRestaurants(){
       try {
-        // Ton endpoint: /exec renvoie approved par défaut.
-        // Si tu veux forcer: `${DATA_URL}?status=approved`
         const res = await fetch(`${DATA_URL}?status=approved`, { cache: "no-store" });
         const data = await res.json();
 
         const list = (data || [])
           .map(normalizeFromSheet)
-          // ✅ on garde même si lat/lon=0 pour debug, mais on filtrera à l’affichage/map
           .filter(r => r.id && r.name);
 
-        // si la sheet est vide / pas d’approved, fallback
         restaurants = list.length ? list : (window.RESTAURANTS || []);
       } catch (e) {
         console.warn("Fetch Google Sheet failed, fallback restaurants.js", e);
