@@ -455,11 +455,18 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- On peut laisser restaurants.js en fallback (si fetch échoue), mais la source principale = Google Sheet -->
   <script src="./restaurants.js"></script>
   <script src="./utils.js"></script>
 
   <script>
-    const restaurants = window.RESTAURANTS || [];
+    // ---------------------------
+    // ✅ SOURCE SHEET (Apps Script)
+    // ---------------------------
+    const DATA_URL = "https://script.google.com/macros/s/AKfycbxxARTHtrZB7r5cAxPM3pMOR4EJ0CYn9x0KdO-qYNJVYxnuWa4iQ2SLZ6sLrObculU_/exec";
+
+    // Restaurants (sera rempli depuis Google Sheet)
+    let restaurants = [];
     const activeFilters = new Set();
     let userLoc = AO.getLastLocation(); // {lat, lon}
 
@@ -494,12 +501,13 @@
         neighborhoods.map(n => `<option value="${n}">${n}</option>`).join("");
     }
 
-    // Map (style plus moderne)
-    const map = L.map('map', { scrollWheelZoom: true })
-      .setView([restaurants[0]?.lat || 45.505, restaurants[0]?.lon || -73.57], 13);
+    // ---------------------------
+    // MAP (init par défaut, recenter après fetch)
+    // ---------------------------
+    const map = L.map('map', { scrollWheelZoom: true }).setView([45.505, -73.57], 13);
 
     // CartoDB Positron (rendu plus "moderne")
-    const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       attribution: '© OpenStreetMap © CARTO'
     }).addTo(map);
 
@@ -604,7 +612,6 @@
           const on = AO.toggleFavorite(r.id);
           fav.classList.toggle("active", on);
           fav.textContent = on ? "❤️" : "🤍";
-          // si filtre favoris actif, re-apply
           if (activeFilters.has("favorites")) applyFilters();
         });
 
@@ -664,7 +671,6 @@
     }
 
     async function enableNearby(){
-      // Demande la position
       return new Promise((resolve) => {
         if (!navigator.geolocation) return resolve(false);
         navigator.geolocation.getCurrentPosition(
@@ -711,9 +717,6 @@
 
       // Nearby sort
       if (activeFilters.has("nearby")){
-        if (!userLoc){
-          // si pas encore de loc, on tente, sinon on continue sans distance
-        }
         filtered = filtered.map(withDistance);
         filtered.sort((a,b) => (a._km ?? 1e9) - (b._km ?? 1e9));
       }
@@ -729,7 +732,6 @@
       ch.addEventListener("click", async () => {
         const f = ch.dataset.filter;
 
-        // handle nearby special
         if (f === "nearby"){
           if (activeFilters.has("nearby")){
             activeFilters.delete("nearby");
@@ -759,9 +761,72 @@
       });
     });
 
-    // INIT
-    buildLocationFilters();
-    applyFilters();
+    // ---------------------------
+    // ✅ LOAD depuis Google Sheet + fallback sur restaurants.js si besoin
+    // ---------------------------
+    function normalizeFromSheet(row){
+      const tagsArr = (row.tags || "")
+        .split(",")
+        .map(t => t.trim())
+        .filter(Boolean);
+
+      const r = {
+        id: row.id,
+        name: row.name,
+        city: row.city,
+        neighborhood: row.neighborhood || "",
+        address: row.address || "",
+        lat: Number(row.lat),
+        lon: Number(row.lon),
+        score: row.score ? Number(row.score) : null,
+        scoreLabel: row.score ? String(row.score) : "—",
+        image: row.photo_url || row.image || "",
+        note: row.note || "",
+        tags: Array.isArray(row.tags) ? row.tags : tagsArr,
+        price: row.price || "",
+        website: row.website || "",
+        gfSafety: (row.gfSafety || "option").toLowerCase()
+      };
+      return r;
+    }
+
+    async function loadRestaurants(){
+      try {
+        const res = await fetch(DATA_URL, { cache: "no-store" });
+        const data = await res.json();
+
+        const approved = (data || [])
+          .filter(r => (r.status || "").toLowerCase() === "approved")
+          .map(normalizeFromSheet)
+          .filter(r => r.id && r.name && Number.isFinite(r.lat) && Number.isFinite(r.lon));
+
+        if (approved.length) {
+          restaurants = approved;
+          return;
+        }
+
+        // sinon fallback sur restaurants.js
+        restaurants = window.RESTAURANTS || [];
+      } catch (e) {
+        console.warn("Fetch Google Sheet failed, fallback restaurants.js", e);
+        restaurants = window.RESTAURANTS || [];
+      }
+    }
+
+    // INIT (asynchrone)
+    (async function init(){
+      await loadRestaurants();
+
+      buildLocationFilters();
+      applyFilters();
+
+      // recentre la carte si on a des restos
+      if (restaurants.length) {
+        map.setView([restaurants[0].lat, restaurants[0].lon], 13);
+      } else {
+        document.getElementById("count").textContent = "0 resto";
+      }
+    })();
   </script>
 </body>
 </html>
