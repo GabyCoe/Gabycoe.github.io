@@ -763,12 +763,21 @@
 
     // ---------------------------
     // ✅ LOAD depuis Google Sheet + fallback sur restaurants.js si besoin
+    // ✅ IMPORTANT: ton endpoint renvoie DEJA filtré (approved par défaut)
     // ---------------------------
     function normalizeFromSheet(row){
       const tagsArr = (row.tags || "")
         .split(",")
         .map(t => t.trim())
         .filter(Boolean);
+
+      // mapping GF : ton Apps Script renvoie "gf" (ex: "100% gluten free")
+      // on transforme en gfSafety (dedicated/option/risk) pour le site
+      const gfText = String(row.gf || row.gfSafety || "").toLowerCase();
+      let gfSafety = "option";
+      if (gfText.includes("100%") || gfText.includes("dédi") || gfText.includes("dedic")) gfSafety = "dedicated";
+      else if (gfText.includes("risque") || gfText.includes("contamin")) gfSafety = "risk";
+      else if (gfText.includes("option")) gfSafety = "option";
 
       const r = {
         id: row.id,
@@ -785,28 +794,25 @@
         tags: Array.isArray(row.tags) ? row.tags : tagsArr,
         price: row.price || "",
         website: row.website || "",
-        gfSafety: (row.gfSafety || "option").toLowerCase()
+        gfSafety
       };
       return r;
     }
 
     async function loadRestaurants(){
       try {
-        const res = await fetch(DATA_URL, { cache: "no-store" });
+        // Ton endpoint: /exec renvoie approved par défaut.
+        // Si tu veux forcer: `${DATA_URL}?status=approved`
+        const res = await fetch(`${DATA_URL}?status=approved`, { cache: "no-store" });
         const data = await res.json();
 
-        const approved = (data || [])
-          .filter(r => (r.status || "").toLowerCase() === "approved")
+        const list = (data || [])
           .map(normalizeFromSheet)
-          .filter(r => r.id && r.name && Number.isFinite(r.lat) && Number.isFinite(r.lon));
+          // ✅ on garde même si lat/lon=0 pour debug, mais on filtrera à l’affichage/map
+          .filter(r => r.id && r.name);
 
-        if (approved.length) {
-          restaurants = approved;
-          return;
-        }
-
-        // sinon fallback sur restaurants.js
-        restaurants = window.RESTAURANTS || [];
+        // si la sheet est vide / pas d’approved, fallback
+        restaurants = list.length ? list : (window.RESTAURANTS || []);
       } catch (e) {
         console.warn("Fetch Google Sheet failed, fallback restaurants.js", e);
         restaurants = window.RESTAURANTS || [];
@@ -820,10 +826,11 @@
       buildLocationFilters();
       applyFilters();
 
-      // recentre la carte si on a des restos
-      if (restaurants.length) {
-        map.setView([restaurants[0].lat, restaurants[0].lon], 13);
-      } else {
+      // recentre la carte si on a des restos valides en lat/lon
+      const first = restaurants.find(r => Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0);
+      if (first) map.setView([first.lat, first.lon], 13);
+
+      if (!restaurants.length) {
         document.getElementById("count").textContent = "0 resto";
       }
     })();
