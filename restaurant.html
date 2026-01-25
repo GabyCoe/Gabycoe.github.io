@@ -354,15 +354,13 @@
     // -------------------------
     // Data + helpers
     // -------------------------
-    let DATA = (window.RESTAURANTS && Array.isArray(window.RESTAURANTS)) ? window.RESTAURANTS : [];
 
-window.addEventListener("ao:restaurants:ready", (ev) => {
-  DATA = Array.isArray(ev.detail) ? ev.detail : (window.RESTAURANTS || []);
-  // refresh page view after API merge
-  const id = currentId();
-  buildList(id, qEl.value || "");
-  showDetail(id);
-});
+    // ✅ Endpoint Google Apps Script (même que sur index)
+    const DATA_URL = "https://script.google.com/macros/s/AKfycbxxARTHtrZB7r5cAxPM3pMOR4EJ0CYn9x0KdO-qYNJVYxnuWa4iQ2SLZ6sLrObculU_/exec";
+
+    // ✅ DATA = on démarre avec ce que restaurants.js met dans window.RESTAURANTS,
+    // puis on merge avec la Sheet
+    let DATA = (window.RESTAURANTS && Array.isArray(window.RESTAURANTS)) ? window.RESTAURANTS.slice() : [];
 
     const qs = (k) => new URLSearchParams(window.location.search).get(k);
     const safe = (v, fb="—") => (v === undefined || v === null || v === "" ? fb : v);
@@ -379,6 +377,71 @@ window.addEventListener("ao:restaurants:ready", (ev) => {
       };
       return dict[t] || t;
     };
+
+    // ✅ Convertit liens Drive (file/d/... ou open?id=...) en lien image direct
+    function normalizeImageUrl(url){
+      const u = String(url || "").trim();
+      if (!u) return "";
+
+      const m1 = u.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+      if (m1 && m1[1]) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+
+      const m2 = u.match(/[?&]id=([^&]+)/);
+      if (u.includes("drive.google.com") && m2 && m2[1]) return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+
+      return u;
+    }
+
+    function normalizeFromSheet(row){
+      // tags
+      let tags = [];
+      if (Array.isArray(row.tags)) tags = row.tags.map(t => String(t).trim()).filter(Boolean);
+      else if (typeof row.tags === "string") tags = row.tags.split(",").map(t => t.trim()).filter(Boolean);
+      else if (row.tags != null) tags = [String(row.tags).trim()].filter(Boolean);
+
+      // image: on couvre plusieurs noms possibles
+      const img = normalizeImageUrl(row.image || row.photo_url || row.photo || "");
+
+      return {
+        id: String(row.id || "").trim(),
+        name: String(row.name || "").trim(),
+        city: String(row.city || "").trim(),
+        neighborhood: String(row.neighborhood || "").trim(),
+        address: String(row.address || "").trim(),
+        lat: Number(row.lat || 0),
+        lon: Number(row.lon || 0),
+        score: row.score ? Number(row.score) : null,
+        scoreLabel: row.score ? String(row.score) : "—",
+        image: img,
+        note: String(row.note || "").trim(),
+        tags,
+        price: String(row.price || "").trim(),
+        website: String(row.website || "").trim(),
+        gfSafety: String(row.gfSafety || row.gf || "option")
+      };
+    }
+
+    function mergeById(base, extra){
+      const map = new Map();
+      base.forEach(r => { if (r && r.id) map.set(r.id, r); });
+      extra.forEach(r => {
+        if (!r || !r.id) return;
+        map.set(r.id, { ...(map.get(r.id) || {}), ...r });
+      });
+      return [...map.values()];
+    }
+
+    async function loadFromSheet(){
+      try{
+        const res = await fetch(`${DATA_URL}?status=approved&_=${Date.now()}`, { cache: "no-store" });
+        const json = await res.json();
+        if (!Array.isArray(json)) return [];
+        return json.map(normalizeFromSheet).filter(r => r.id && r.name);
+      } catch (e){
+        console.warn("Sheet fetch failed", e);
+        return [];
+      }
+    }
 
     // -------------------------
     // Favorites (localStorage)
@@ -591,9 +654,10 @@ window.addEventListener("ao:restaurants:ready", (ev) => {
       noteEl.textContent = safe(r.note, "");
 
       // Image
-      if (r.image){
+      const imgUrl = normalizeImageUrl(r.image || "");
+      if (imgUrl){
         imgEl.style.display = "block";
-        imgEl.src = r.image;
+        imgEl.src = imgUrl;
         imgEl.alt = r.name || "";
         imgEl.onerror = () => { imgEl.style.display = "none"; };
       } else {
@@ -656,7 +720,7 @@ window.addEventListener("ao:restaurants:ready", (ev) => {
     function init(){
       const id = currentId();
 
-      // Initial list + detail
+      // Initial list + detail (avec fallback)
       buildList(id, "");
       showDetail(id);
 
@@ -671,7 +735,6 @@ window.addEventListener("ao:restaurants:ready", (ev) => {
         favFilter.classList.toggle("active", favOnly);
         buildList(currentId(), qEl.value);
 
-        // si on est en favOnly et que le resto actuel n'est pas favori => afficher le premier favori
         if (favOnly && !isFav(currentId())){
           const favs = [...getFavs()];
           if (favs.length){
@@ -713,7 +776,6 @@ window.addEventListener("ao:restaurants:ready", (ev) => {
         toggleFav(id);
         updateFavUI(id);
 
-        // refresh list if favorites filter is on
         if (favOnly){
           buildList(id, qEl.value);
           if (!isFav(id)){
@@ -725,14 +787,13 @@ window.addEventListener("ao:restaurants:ready", (ev) => {
         }
       });
 
-      // Keyboard navigation (↑ ↓) in filtered list
+      // Keyboard navigation (↑ ↓)
       document.addEventListener("keydown", (e) => {
         if (!["ArrowUp","ArrowDown"].includes(e.key)) return;
 
         const activeId = currentId();
         const q = qEl.value || "";
 
-        // rebuild the same list view logic
         let list = DATA.slice();
         if (favOnly){
           const favs = getFavs();
@@ -773,7 +834,30 @@ window.addEventListener("ao:restaurants:ready", (ev) => {
       });
     }
 
+    // 1) rendu immédiat avec fallback
     init();
+
+    // 2) merge + refresh quand restaurants.js a fini (si tu déclenches l'event)
+    window.addEventListener("ao:restaurants:ready", (ev) => {
+      const fromEvent = Array.isArray(ev.detail) ? ev.detail : [];
+      if (fromEvent.length){
+        DATA = mergeById(DATA, fromEvent);
+        const id = currentId();
+        buildList(id, qEl.value || "");
+        showDetail(id);
+      }
+    });
+
+    // 3) IMPORTANT: restaurant.html fetch aussi la Sheet (pour être autonome)
+    (async function bootSheet(){
+      const sheet = await loadFromSheet();
+      if (sheet.length){
+        DATA = mergeById(DATA, sheet);
+        const id = currentId();
+        buildList(id, qEl.value || "");
+        showDetail(id);
+      }
+    })();
   </script>
 </body>
 </html>
