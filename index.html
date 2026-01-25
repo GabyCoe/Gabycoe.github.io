@@ -427,6 +427,11 @@
             <h2>Restaurants</h2>
             <div class="count" id="count">—</div>
           </div>
+          <div id="loading" style="padding:12px;color:rgba(255,255,255,.7);font-size:13px;">
+            ⏳ Chargement des restaurants…
+          </div>
+          <div class="items" id="items"></div>
+
           <div class="items" id="items"></div>
         </div>
 
@@ -615,6 +620,9 @@
     function render(list){
       const items = document.getElementById("items");
       items.innerHTML = "";
+      const loading = document.getElementById("loading");
+      if (loading) loading.style.display = "none";
+
 
       document.getElementById("count").textContent =
         list.length + (list.length > 1 ? " restos" : " resto");
@@ -909,6 +917,9 @@
       if (first) map.setView([first.lat, first.lon], 13);
 
       // 2) charge l’API et merge
+      const loading = document.getElementById("loading");
+      if (loading) loading.style.display = "block";
+
       const fromSheet = await loadFromSheet();
       restaurants = mergeById(FALLBACK, fromSheet);
 
