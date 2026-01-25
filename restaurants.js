@@ -1,14 +1,13 @@
 // restaurants.js
 // Charge les restos depuis Google Apps Script (JSON) + fallback local.
-// + Fusion: Sheet (approved) écrase fallback si même id.
+// => window.RESTAURANTS = (FALLBACK + API) fusionnés
+// => déclenche un event "ao:restaurants:ready" quand c’est prêt
 
 (function () {
   const ENDPOINT =
     "https://script.google.com/macros/s/AKfycbxxARTHtrZB7r5cAxPM3pMOR4EJ0CYn9x0KdO-qYNJVYxnuWa4iQ2SLZ6sLrObculU_/exec";
 
-  // ----------------------------
-  // ✅ TES RESTOS HISTORIQUES ICI
-  // ----------------------------
+  // ✅ Fallback local : tes restos historiques (ceux que tu as perdus)
   const FALLBACK = [
     {
       id: "arepera-du-plateau",
@@ -26,7 +25,7 @@
       price: "$$$",
       website: "https://www.arepera.ca/",
       gmaps: "",
-      gfSafety: "dedicated", // dedicated | option | risk
+      gfSafety: "dedicated",
     },
     {
       id: "le-marquis-signature-sante",
@@ -84,9 +83,6 @@
     },
   ];
 
-  // ----------------------------
-  // Helpers
-  // ----------------------------
   function gfToSafety(gfText) {
     const s = String(gfText || "").toLowerCase();
     if (s.includes("dédi") || s.includes("dedicated") || s.includes("100%")) return "dedicated";
@@ -95,22 +91,18 @@
   }
 
   function normalizeTags(tags) {
-    if (Array.isArray(tags)) return tags.map((t) => String(t).trim()).filter(Boolean);
-    if (!tags) return [];
-    // si c'est une string "pizza, takeout"
-    return String(tags)
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
+    if (Array.isArray(tags)) return tags.map(t => String(t).trim()).filter(Boolean);
+    if (typeof tags === "string") {
+      return tags.split(",").map(t => t.trim()).filter(Boolean);
+    }
+    return [];
   }
 
   function normalizeOne(r) {
-    // r vient de ton Apps Script doGet
     const id = String(r.id || "").trim();
     const lat = Number(r.lat || 0);
     const lon = Number(r.lon || 0);
 
-    // ⚠️ ton Apps Script renvoie image = photo_url (tu l'as mis comme "image")
     return {
       id,
       name: String(r.name || "").trim(),
@@ -131,51 +123,43 @@
     };
   }
 
-  function mergeById(baseList, overrideList) {
-    const map = new Map();
-    baseList.forEach((r) => map.set(r.id, r));
-    overrideList.forEach((r) => {
-      if (!r || !r.id) return;
-      map.set(r.id, r); // override si même id
-    });
-    return Array.from(map.values());
-  }
-
   async function fetchRestaurants(status = "approved") {
     const url = `${ENDPOINT}?status=${encodeURIComponent(status)}&_=${Date.now()}`; // cache-buster
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
-
     const data = await res.json();
     if (!Array.isArray(data)) return [];
 
-    return data
-      .map(normalizeOne)
-      // IMPORTANT: enlever ceux qui n’ont pas de coords (sinon Leaflet peut bug)
-      .filter((r) => isFinite(r.lat) && isFinite(r.lon) && r.lat !== 0 && r.lon !== 0);
+    // ✅ IMPORTANT: on NE FILTRE PLUS lat/lon==0 ici.
+    // On garde le resto dans la liste (il peut apparaître côté UI),
+    // et on évitera juste de créer un marker Leaflet si coords invalides.
+    return data.map(normalizeOne).filter(r => r.id && r.name);
   }
 
-  // ----------------------------
-  // Expose au global
-  // ----------------------------
-  window.AO_API = {
-    ENDPOINT,
-    fetchRestaurants,
-  };
+  function mergeById(localList, apiList) {
+    const map = new Map();
+    // local d’abord
+    (localList || []).forEach(r => { if (r && r.id) map.set(r.id, r); });
+    // API ensuite => écrase si même id
+    (apiList || []).forEach(r => { if (r && r.id) map.set(r.id, r); });
+    return Array.from(map.values());
+  }
 
-  // ✅ Par défaut: on met le fallback
+  // Expose au global
+  window.AO_API = { ENDPOINT, fetchRestaurants };
+
+  // Valeur immédiate (au chargement)
   window.RESTAURANTS = FALLBACK;
 
-  // ✅ Bonus: on essaye de charger la Sheet, puis on fusionne
-  // (ça permet de garder tes anciens restos + ceux du form)
-  fetchRestaurants("approved")
-    .then((sheetList) => {
-      const merged = mergeById(FALLBACK, sheetList);
-      window.RESTAURANTS = merged;
-      // petit flag utile pour debug
-      window.AO_RESTOS_SOURCE = "merged";
-    })
-    .catch(() => {
-      window.AO_RESTOS_SOURCE = "fallback";
-    });
+  // Puis on tente API et on fusionne
+  (async function bootstrap() {
+    try {
+      const api = await fetchRestaurants("approved");
+      window.RESTAURANTS = mergeById(FALLBACK, api);
+    } catch (e) {
+      console.warn("AO_API fetch failed, using FALLBACK only", e);
+      window.RESTAURANTS = FALLBACK;
+    }
+    window.dispatchEvent(new CustomEvent("ao:restaurants:ready", { detail: window.RESTAURANTS }));
+  })();
 })();
