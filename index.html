@@ -643,30 +643,30 @@
         items.appendChild(el);
 
         // Marker
-        const popupHtml = `
-          <div style="font-family: Inter, Arial; min-width: 220px;">
-            <div style="font-weight: 900; margin-bottom: 4px;">${r.name}</div>
-            <div style="opacity:.8; font-size: 12.5px; margin-bottom: 8px;">
-              ${r.city} • ${r.neighborhood || "—"} • ${r.price || "—"}
-            </div>
-            <div style="font-size: 12.5px; margin-bottom: 10px;">${r.address}</div>
-            <div style="font-size: 12.5px; opacity:.9;">
-              ⭐ ${r.scoreLabel ?? r.score ?? "—"}
-              ${(r.tags || []).length ? " • " + (r.tags || []).map(AO.tagLabel).join(" · ") : ""}
-            </div>
-          </div>
-        `;
+const popupHtml = `
+  <div style="font-family: Inter, Arial; min-width: 220px;">
+    <div style="font-weight: 900; margin-bottom: 4px;">${r.name}</div>
+    <div style="opacity:.8; font-size: 12.5px; margin-bottom: 8px;">
+      ${r.city} • ${r.neighborhood || "—"} • ${r.price || "—"}
+    </div>
+    <div style="font-size: 12.5px; margin-bottom: 10px;">${r.address}</div>
+    <div style="font-size: 12.5px; opacity:.9;">
+      ⭐ ${r.scoreLabel ?? r.score ?? "—"}
+      ${(r.tags || []).length ? " • " + (r.tags || []).map(AO.tagLabel).join(" · ") : ""}
+    </div>
+  </div>
+`;
 
-        // ⚠️ si lat/lon manquants ou = 0, on n'ajoute pas le marker (sinon ça casse la carte)
-        if (Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0) {
-          const marker = L.marker([r.lat, r.lon], { icon: markerIcon(r.gfSafety) })
-            .addTo(map)
-            .bindPopup(popupHtml);
+// ✅ Marker seulement si coords valides (sinon Leaflet casse)
+if (Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0) {
+  const marker = L.marker([r.lat, r.lon], { icon: markerIcon(r.gfSafety) })
+    .addTo(map)
+    .bindPopup(popupHtml);
 
-          marker.on("click", () => go());
-          markers.set(r.id, marker);
-        }
-      });
+  marker.on("click", () => go());
+  markers.set(r.id, marker);
+}
+
 
       if (list.length === 1){
         const one = list[0];
@@ -827,20 +827,27 @@
     }
 
     // INIT (asynchrone)
-    (async function init(){
-      await loadRestaurants();
+(function init(){
+  // 1) rendu immédiat depuis fallback (restaurants.js met déjà window.RESTAURANTS)
+  restaurants = window.RESTAURANTS || [];
+  buildLocationFilters();
+  applyFilters();
 
-      buildLocationFilters();
-      applyFilters();
+  // recentre la carte si on a un resto avec coords valides
+  const first = restaurants.find(r =>
+    Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0
+  );
+  if (first) map.setView([first.lat, first.lon], 13);
 
-      // recentre la carte si on a des restos valides en lat/lon
-      const first = restaurants.find(r => Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0);
-      if (first) map.setView([first.lat, first.lon], 13);
+  // 2) rerender quand restaurants.js a fini le fetch API
+  window.addEventListener("ao:restaurants:ready", (ev) => {
+    restaurants = ev.detail || window.RESTAURANTS || [];
+    buildLocationFilters();
+    applyFilters();
 
-      if (!restaurants.length) {
-        document.getElementById("count").textContent = "0 resto";
-      }
-    })();
-  </script>
-</body>
-</html>
+    const first2 = restaurants.find(r =>
+      Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0
+    );
+    if (first2) map.setView([first2.lat, first2.lon], 13);
+  });
+})();
