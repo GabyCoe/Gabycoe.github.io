@@ -455,17 +455,92 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- On peut laisser restaurants.js en fallback (si fetch échoue), mais la source principale = Google Sheet -->
   <script src="./restaurants.js"></script>
   <script src="./utils.js"></script>
 
   <script>
     // ---------------------------
-    // ✅ SOURCE SHEET (Apps Script)
+    // ✅ Apps Script endpoint
     // ---------------------------
     const DATA_URL = "https://script.google.com/macros/s/AKfycbxxARTHtrZB7r5cAxPM3pMOR4EJ0CYn9x0KdO-qYNJVYxnuWa4iQ2SLZ6sLrObculU_/exec";
 
-    // Restaurants (sera rempli depuis Google Sheet)
+    // ---------------------------
+    // ✅ Tes restos historiques (fallback)
+    // ---------------------------
+    const FALLBACK = [
+      {
+        id: "arepera-du-plateau",
+        name: "Arepera du Plateau",
+        city: "Montréal",
+        neighborhood: "Plateau-Mont-Royal",
+        address: "73 Rue Prince-Arthur E, Montréal, QC H2X 1B4",
+        lat: 45.514775,
+        lon: -73.571903,
+        score: 9.0,
+        scoreLabel: "9.0",
+        image: "images/arepera83.jpg",
+        note: "Je recommande à 100% pour la nourriture, juste un tout petit peu cher.",
+        tags: ["brunch", "vegan", "wifi", "happy_hour"],
+        price: "$$$",
+        website: "https://www.arepera.ca/",
+        gfSafety: "dedicated",
+      },
+      {
+        id: "le-marquis-signature-sante",
+        name: "Le Marquis Signature santé",
+        city: "Montréal",
+        neighborhood: "Vieux-Montréal",
+        address: "194 Saint-Paul St W, Montreal, Quebec H2Y 1Z9",
+        lat: 45.5017,
+        lon: -73.5673,
+        score: 4.6,
+        scoreLabel: "4.6",
+        image: "images/575_Le-marquis-sans-gluten-vieux-montreal-7.jpg",
+        note: "Parfait pour congeler et se faire de merveilleux petits déjeuner, je recommande à 100% !",
+        tags: [],
+        price: "$$",
+        website: "",
+        gfSafety: "option",
+      },
+      {
+        id: "bellucci-italia-complexe-desjardins",
+        name: "Bellucci Italia",
+        city: "Montréal",
+        neighborhood: "Centre-ville",
+        address: "200 Rue Sainte-Catherine O, Montréal, QC H5B 1B2 (Complexe Desjardins)",
+        lat: 45.5049,
+        lon: -73.5696,
+        score: 7.8,
+        scoreLabel: "7.8",
+        image: "images/caption.jpg",
+        note: "Pâtes fines et bien cuites. On a pris la “fromage” (moins garnie que prévu). Option sans gluten dispo.",
+        tags: ["takeout"],
+        price: "$$",
+        website: "https://bellucciitalia.com/",
+        gfSafety: "option",
+      },
+      {
+        id: "dominos-pizza-gf",
+        name: "Domino’s Pizza",
+        city: "Montréal",
+        neighborhood: "",
+        address: "Montréal (voir succursale)",
+        lat: 45.505,
+        lon: -73.57,
+        score: 8.2,
+        scoreLabel: "8.2",
+        image: "images/dominos-gluten-free-pizza-2021-featured.jpg",
+        note: "Option pâte sans gluten. Très bonne ! (Attention : risque de contamination croisée selon les succursales.)",
+        tags: ["pizza", "takeout"],
+        price: "$",
+        website: "https://www.dominos.ca/",
+        gfSafety: "risk",
+      },
+    ];
+
+    // ---------------------------
+    // State
+    // ---------------------------
     let restaurants = [];
     const activeFilters = new Set();
     let userLoc = AO.getLastLocation(); // {lat, lon}
@@ -502,11 +577,10 @@
     }
 
     // ---------------------------
-    // MAP (init par défaut, recenter après fetch)
+    // MAP
     // ---------------------------
     const map = L.map('map', { scrollWheelZoom: true }).setView([45.505, -73.57], 13);
 
-    // CartoDB Positron (rendu plus "moderne")
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       attribution: '© OpenStreetMap © CARTO'
     }).addTo(map);
@@ -535,7 +609,9 @@
       return { ...r, _km: km };
     }
 
+    // ---------------------------
     // Render
+    // ---------------------------
     function render(list){
       const items = document.getElementById("items");
       items.innerHTML = "";
@@ -550,7 +626,6 @@
       list.forEach(r0 => {
         const r = withDistance(r0);
 
-        // Card
         const el = document.createElement("div");
         el.className = "item";
         el.tabIndex = 0;
@@ -642,34 +717,33 @@
 
         items.appendChild(el);
 
-        // Marker
-const popupHtml = `
-  <div style="font-family: Inter, Arial; min-width: 220px;">
-    <div style="font-weight: 900; margin-bottom: 4px;">${r.name}</div>
-    <div style="opacity:.8; font-size: 12.5px; margin-bottom: 8px;">
-      ${r.city} • ${r.neighborhood || "—"} • ${r.price || "—"}
-    </div>
-    <div style="font-size: 12.5px; margin-bottom: 10px;">${r.address}</div>
-    <div style="font-size: 12.5px; opacity:.9;">
-      ⭐ ${r.scoreLabel ?? r.score ?? "—"}
-      ${(r.tags || []).length ? " • " + (r.tags || []).map(AO.tagLabel).join(" · ") : ""}
-    </div>
-  </div>
-`;
+        const popupHtml = `
+          <div style="font-family: Inter, Arial; min-width: 220px;">
+            <div style="font-weight: 900; margin-bottom: 4px;">${r.name}</div>
+            <div style="opacity:.8; font-size: 12.5px; margin-bottom: 8px;">
+              ${r.city} • ${r.neighborhood || "—"} • ${r.price || "—"}
+            </div>
+            <div style="font-size: 12.5px; margin-bottom: 10px;">${r.address}</div>
+            <div style="font-size: 12.5px; opacity:.9;">
+              ⭐ ${r.scoreLabel ?? r.score ?? "—"}
+              ${(r.tags || []).length ? " • " + (r.tags || []).map(AO.tagLabel).join(" · ") : ""}
+            </div>
+          </div>
+        `;
 
-// ✅ Marker seulement si coords valides (sinon Leaflet casse)
-if (Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0) {
-  const marker = L.marker([r.lat, r.lon], { icon: markerIcon(r.gfSafety) })
-    .addTo(map)
-    .bindPopup(popupHtml);
+        // ✅ Marker seulement si coords valides
+        if (Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0) {
+          const marker = L.marker([r.lat, r.lon], { icon: markerIcon(r.gfSafety) })
+            .addTo(map)
+            .bindPopup(popupHtml);
 
-  marker.on("click", () => go());
-  markers.set(r.id, marker);
-}
+          marker.on("click", () => go());
+          markers.set(r.id, marker);
+        }
+      });
 
-}); // ✅ FIN DU forEach
-
-if (list.length === 1){
+      // recentrer si 1 seul resto
+      if (list.length === 1){
         const one = list[0];
         if (Number.isFinite(one.lat) && Number.isFinite(one.lon) && one.lat !== 0 && one.lon !== 0) {
           map.setView([one.lat, one.lon], 13);
@@ -705,24 +779,20 @@ if (list.length === 1){
         const matchCity = !city || r.city === city;
         const matchNeighborhood = !neighborhood || r.neighborhood === neighborhood;
 
-        // tags chips (brunch/takeout/etc.)
         const tagFilters = [...activeFilters].filter(f => !["favorites","nearby","dedicated","option","risk"].includes(f));
         const matchTags = tagFilters.length === 0 ? true : tagFilters.every(f => (r.tags || []).includes(f));
 
-        // favorites
         const matchFav = !activeFilters.has("favorites") || favSet.has(r.id);
 
-        // gf safety
-        const gf = r.gfSafety || "option";
+        const gf = (r.gfSafety || "option").toLowerCase();
         const matchGF =
           (!activeFilters.has("dedicated") && !activeFilters.has("option") && !activeFilters.has("risk"))
           ? true
-          : (activeFilters.has(gf));
+          : activeFilters.has(gf);
 
         return matchQ && matchCity && matchNeighborhood && matchTags && matchFav && matchGF;
       });
 
-      // Nearby sort
       if (activeFilters.has("nearby")){
         filtered = filtered.map(withDistance);
         filtered.sort((a,b) => (a._km ?? 1e9) - (b._km ?? 1e9));
@@ -769,86 +839,85 @@ if (list.length === 1){
     });
 
     // ---------------------------
-    // ✅ LOAD depuis Google Sheet + fallback sur restaurants.js si besoin
-    // ✅ IMPORTANT: ton endpoint renvoie déjà filtré (approved par défaut),
-    // mais on force ?status=approved pour être clair.
+    // ✅ Load depuis Google Sheet, puis merge avec FALLBACK
     // ---------------------------
+    function safeTags(rowTags){
+      if (Array.isArray(rowTags)) return rowTags.map(t => String(t).trim()).filter(Boolean);
+      if (typeof rowTags === "string") return rowTags.split(",").map(t => t.trim()).filter(Boolean);
+      if (rowTags == null) return [];
+      return [String(rowTags).trim()].filter(Boolean);
+    }
+
+    function gfToSafety(gfText){
+      const s = String(gfText || "").toLowerCase();
+      if (s.includes("dédi") || s.includes("dedicated") || s.includes("100%")) return "dedicated";
+      if (s.includes("risque") || s.includes("contamin")) return "risk";
+      return "option";
+    }
+
     function normalizeFromSheet(row){
-      // ✅ tags peut être string OU array (sinon ça casse avec split)
-      let tagsArr = [];
-      if (Array.isArray(row.tags)) {
-        tagsArr = row.tags.map(t => String(t).trim()).filter(Boolean);
-      } else if (typeof row.tags === "string") {
-        tagsArr = row.tags.split(",").map(t => t.trim()).filter(Boolean);
-      } else if (row.tags != null) {
-        tagsArr = [String(row.tags).trim()].filter(Boolean);
-      }
-
-      // mapping GF : Apps Script renvoie "gf"
-      const gfText = String(row.gf || row.gfSafety || "").toLowerCase();
-      let gfSafety = "option";
-      if (gfText.includes("100%") || gfText.includes("dédi") || gfText.includes("dedic")) gfSafety = "dedicated";
-      else if (gfText.includes("risque") || gfText.includes("contamin")) gfSafety = "risk";
-      else if (gfText.includes("option")) gfSafety = "option";
-
       return {
-        id: row.id,
-        name: row.name,
-        city: row.city,
-        neighborhood: row.neighborhood || "",
-        address: row.address || "",
-        lat: Number(row.lat),
-        lon: Number(row.lon),
-        score: row.score ? Number(row.score) : null,
-        scoreLabel: row.score ? String(row.score) : "—",
-        // ✅ ton Apps Script renvoie "image" (qui contient photo_url). On garde les deux.
-        image: row.image || row.photo_url || "",
-        note: row.note || "",
-        tags: tagsArr,
-        price: row.price || "",
-        website: row.website || "",
-        gfSafety
+        id: String(row.id || "").trim(),
+        name: String(row.name || "").trim(),
+        city: String(row.city || "").trim(),
+        neighborhood: String(row.neighborhood || "").trim(),
+        address: String(row.address || "").trim(),
+        lat: Number(row.lat || 0),
+        lon: Number(row.lon || 0),
+        score: Number(row.score || 0) || 0,
+        scoreLabel: String(row.scoreLabel || row.score || "").trim(),
+        image: String(row.image || row.photo_url || row.photo || "").trim(),
+        note: String(row.note || "").trim(),
+        tags: safeTags(row.tags),
+        price: String(row.price || "").trim(),
+        website: String(row.website || "").trim(),
+        gmaps: String(row.gmaps || row.maps || "").trim(),
+        gfSafety: row.gfSafety ? String(row.gfSafety).toLowerCase() : gfToSafety(row.gf),
       };
     }
 
-    async function loadRestaurants(){
+    function mergeById(baseList, extraList){
+      const m = new Map();
+      baseList.forEach(r => m.set(r.id, r));
+      extraList.forEach(r => { if (r && r.id) m.set(r.id, r); }); // API overwrite fallback
+      return [...m.values()].filter(r => r.id && r.name);
+    }
+
+    async function loadFromSheet(){
       try {
-        const res = await fetch(`${DATA_URL}?status=approved`, { cache: "no-store" });
+        const res = await fetch(`${DATA_URL}?status=approved&_=${Date.now()}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
-
-        const list = (data || [])
-          .map(normalizeFromSheet)
-          .filter(r => r.id && r.name);
-
-        restaurants = list.length ? list : (window.RESTAURANTS || []);
+        if (!Array.isArray(data)) return [];
+        return data.map(normalizeFromSheet);
       } catch (e) {
-        console.warn("Fetch Google Sheet failed, fallback restaurants.js", e);
-        restaurants = window.RESTAURANTS || [];
+        console.warn("Google Sheet fetch failed:", e);
+        return [];
       }
     }
 
-    // INIT (asynchrone)
-(function init(){
-  // 1) rendu immédiat depuis fallback (restaurants.js met déjà window.RESTAURANTS)
-  restaurants = window.RESTAURANTS || [];
-  buildLocationFilters();
-  applyFilters();
+    // ---------------------------
+    // INIT
+    // ---------------------------
+    (async function init(){
+      // 1) rendu immédiat (tes restos)
+      restaurants = mergeById([], FALLBACK);
+      buildLocationFilters();
+      applyFilters();
 
-  // recentre la carte si on a un resto avec coords valides
-  const first = restaurants.find(r =>
-    Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0
-  );
-  if (first) map.setView([first.lat, first.lon], 13);
+      const first = restaurants.find(r => Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0);
+      if (first) map.setView([first.lat, first.lon], 13);
 
-  // 2) rerender quand restaurants.js a fini le fetch API
-  window.addEventListener("ao:restaurants:ready", (ev) => {
-    restaurants = ev.detail || window.RESTAURANTS || [];
-    buildLocationFilters();
-    applyFilters();
+      // 2) charge l’API et merge
+      const fromSheet = await loadFromSheet();
+      restaurants = mergeById(FALLBACK, fromSheet);
 
-    const first2 = restaurants.find(r =>
-      Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0
-    );
-    if (first2) map.setView([first2.lat, first2.lon], 13);
-  });
-})();
+      buildLocationFilters();
+      applyFilters();
+
+      const first2 = restaurants.find(r => Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !== 0);
+      if (first2) map.setView([first2.lat, first2.lon], 13);
+    })();
+  </script>
+</body>
+</html>
