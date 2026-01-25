@@ -1,13 +1,12 @@
 // restaurants.js
-// Charge les restos depuis Google Apps Script (JSON) + fallback local.
-// => window.RESTAURANTS = (FALLBACK + API) fusionnés
-// => déclenche un event "ao:restaurants:ready" quand c’est prêt
+// Source unique: merge FALLBACK (tes restos) + Google Apps Script (Form/Sheet)
+// Expose window.RESTAURANTS et déclenche un event "ao:restaurants:ready"
 
 (function () {
   const ENDPOINT =
     "https://script.google.com/macros/s/AKfycbxxARTHtrZB7r5cAxPM3pMOR4EJ0CYn9x0KdO-qYNJVYxnuWa4iQ2SLZ6sLrObculU_/exec";
 
-  // ✅ Fallback local : tes restos historiques (ceux que tu as perdus)
+  // ✅ Mets ici tes restos "historiques" (fallback)
   const FALLBACK = [
     {
       id: "arepera-du-plateau",
@@ -24,7 +23,6 @@
       tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
       price: "$$$",
       website: "https://www.arepera.ca/",
-      gmaps: "",
       gfSafety: "dedicated",
     },
     {
@@ -42,7 +40,6 @@
       tags: [],
       price: "$$",
       website: "",
-      gmaps: "",
       gfSafety: "option",
     },
     {
@@ -60,7 +57,6 @@
       tags: ["takeout"],
       price: "$$",
       website: "https://bellucciitalia.com/",
-      gmaps: "",
       gfSafety: "option",
     },
     {
@@ -78,7 +74,6 @@
       tags: ["pizza", "takeout"],
       price: "$",
       website: "https://www.dominos.ca/",
-      gmaps: "",
       gfSafety: "risk",
     },
   ];
@@ -90,18 +85,28 @@
     return "option";
   }
 
-  function normalizeTags(tags) {
-    if (Array.isArray(tags)) return tags.map(t => String(t).trim()).filter(Boolean);
-    if (typeof tags === "string") {
-      return tags.split(",").map(t => t.trim()).filter(Boolean);
-    }
-    return [];
+  // ✅ Convertit un lien Drive "view" en lien image direct
+  function driveToDirect(url) {
+    const u = String(url || "").trim();
+    if (!u) return "";
+    const m = u.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+    if (m && m[1]) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+    return u;
   }
 
   function normalizeOne(r) {
     const id = String(r.id || "").trim();
     const lat = Number(r.lat || 0);
     const lon = Number(r.lon || 0);
+
+    // tags: array ou string
+    let tags = [];
+    if (Array.isArray(r.tags)) tags = r.tags.map(t => String(t).trim()).filter(Boolean);
+    else if (typeof r.tags === "string") tags = r.tags.split(",").map(t => t.trim()).filter(Boolean);
+
+    // image: supporte image OU photo_url
+    const rawImg = String(r.image || r.photo_url || r.photo || "").trim();
+    const image = driveToDirect(rawImg);
 
     return {
       id,
@@ -111,55 +116,60 @@
       address: String(r.address || "").trim(),
       lat,
       lon,
-      score: Number(r.score || 0) || 0,
+      score: r.score ? Number(r.score) : null,
       scoreLabel: String(r.scoreLabel || r.score || "").trim(),
-      image: String(r.image || r.photo_url || "").trim(),
+      image,
       note: String(r.note || "").trim(),
-      tags: normalizeTags(r.tags),
+      tags,
       price: String(r.price || "").trim(),
       website: String(r.website || "").trim(),
       gmaps: String(r.gmaps || "").trim(),
-      gfSafety: r.gfSafety ? String(r.gfSafety).toLowerCase() : gfToSafety(r.gf),
+      gfSafety: r.gfSafety ? String(r.gfSafety) : gfToSafety(r.gf),
     };
   }
 
   async function fetchRestaurants(status = "approved") {
-    const url = `${ENDPOINT}?status=${encodeURIComponent(status)}&_=${Date.now()}`; // cache-buster
+    const url = `${ENDPOINT}?status=${encodeURIComponent(status)}&_=${Date.now()}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
     if (!Array.isArray(data)) return [];
-
-    // ✅ IMPORTANT: on NE FILTRE PLUS lat/lon==0 ici.
-    // On garde le resto dans la liste (il peut apparaître côté UI),
-    // et on évitera juste de créer un marker Leaflet si coords invalides.
-    return data.map(normalizeOne).filter(r => r.id && r.name);
+    return data
+      .map(normalizeOne)
+      .filter(r => r.id && r.name); // on garde même si lat/lon manquent
   }
 
-  function mergeById(localList, apiList) {
+  function mergeById(fallback, remote) {
     const map = new Map();
-    // local d’abord
-    (localList || []).forEach(r => { if (r && r.id) map.set(r.id, r); });
-    // API ensuite => écrase si même id
-    (apiList || []).forEach(r => { if (r && r.id) map.set(r.id, r); });
-    return Array.from(map.values());
+    (fallback || []).forEach(r => { if (r && r.id) map.set(r.id, r); });
+    (remote || []).forEach(r => {
+      if (!r || !r.id) return;
+      const prev = map.get(r.id) || {};
+      map.set(r.id, { ...prev, ...r });
+    });
+    return [...map.values()];
   }
 
-  // Expose au global
+  // Expose API
   window.AO_API = { ENDPOINT, fetchRestaurants };
 
-  // Valeur immédiate (au chargement)
-  window.RESTAURANTS = FALLBACK;
+  // 1) rendu immédiat (fallback)
+  window.RESTAURANTS = FALLBACK.slice();
 
-  // Puis on tente API et on fusionne
-  (async function bootstrap() {
+  // 2) fetch + merge + event
+  (async () => {
     try {
-      const api = await fetchRestaurants("approved");
-      window.RESTAURANTS = mergeById(FALLBACK, api);
+      const remote = await fetchRestaurants("approved");
+      window.RESTAURANTS = mergeById(FALLBACK, remote);
+
+      window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
+        detail: window.RESTAURANTS
+      }));
     } catch (e) {
-      console.warn("AO_API fetch failed, using FALLBACK only", e);
-      window.RESTAURANTS = FALLBACK;
+      console.warn("AO fetch failed, keep FALLBACK only", e);
+      window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
+        detail: window.RESTAURANTS
+      }));
     }
-    window.dispatchEvent(new CustomEvent("ao:restaurants:ready", { detail: window.RESTAURANTS }));
   })();
 })();
