@@ -354,7 +354,16 @@
     // -------------------------
     // Data + helpers
     // -------------------------
-    const DATA = (window.RESTAURANTS && Array.isArray(window.RESTAURANTS)) ? window.RESTAURANTS : [];
+    let DATA = (window.RESTAURANTS && Array.isArray(window.RESTAURANTS)) ? window.RESTAURANTS : [];
+
+window.addEventListener("ao:restaurants:ready", (ev) => {
+  DATA = Array.isArray(ev.detail) ? ev.detail : (window.RESTAURANTS || []);
+  // refresh page view after API merge
+  const id = currentId();
+  buildList(id, qEl.value || "");
+  showDetail(id);
+});
+
     const qs = (k) => new URLSearchParams(window.location.search).get(k);
     const safe = (v, fb="—") => (v === undefined || v === null || v === "" ? fb : v);
 
