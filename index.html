@@ -667,8 +667,9 @@ if (Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.lat !== 0 && r.lon !==
   markers.set(r.id, marker);
 }
 
+}); // ✅ FIN DU forEach
 
-      if (list.length === 1){
+if (list.length === 1){
         const one = list[0];
         if (Number.isFinite(one.lat) && Number.isFinite(one.lon) && one.lat !== 0 && one.lon !== 0) {
           map.setView([one.lat, one.lon], 13);
