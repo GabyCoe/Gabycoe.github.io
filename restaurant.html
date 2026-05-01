@@ -293,7 +293,7 @@
     <div class="topbar">
       <div class="brand">
         <div class="logo">C</div>
-        <a id="homeLink" href="./index.html" style="font-weight:900; color:inherit">AddictOCéliaque</a>
+        <a id="homeLink" href="./index.html" style="font-weight:900; color:inherit">AddictOCoeliaque</a>
       </div>
       <div class="nav">
         <a href="./index.html#restaurants">Restaurants</a>
@@ -529,7 +529,7 @@
       }
 
       emptyEl.style.display = "none";
-      document.title = `${r.name} — AddictOCéliaque`;
+      document.title = `${r.name} — AddictOCoeliaque`;
 
       nameEl.textContent = safe(r.name);
       scoreEl.textContent = `⭐ ${safe(r.scoreLabel ?? r.score, "—")}`;
@@ -583,7 +583,7 @@
       const url = window.location.href;
 
       shareBtn.onclick = async () => {
-        const shareData = { title: r.name || "Restaurant", text: "AddictOCéliaque — resto sans gluten", url };
+        const shareData = { title: r.name || "Restaurant", text: "AddictOCoeliaque — resto sans gluten", url };
         try{
           if (navigator.share) {
             await navigator.share(shareData);
