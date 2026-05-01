@@ -14,16 +14,16 @@
     :root{
       --bg:#0b0f19;
       --panel: rgba(255,255,255,0.08);
-      --panel2: rgba(255,255,255,0.06);
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.66);
       --border: rgba(255,255,255,0.12);
       --shadow: 0 20px 60px rgba(0,0,0,0.45);
       --radius: 18px;
-      --radius2: 14px;
       --max: 1120px;
     }
+
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -35,10 +35,11 @@
         var(--bg);
       min-height: 100vh;
     }
+
     a{ color: inherit; text-decoration:none; }
+
     .wrap{ max-width: var(--max); margin: 0 auto; padding: 0 18px 60px; }
 
-    /* Sticky top bar */
     .topbar{
       position: sticky;
       top: 0;
@@ -49,7 +50,9 @@
       backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
+
     .brand{ display:flex; align-items:center; gap: 10px; font-weight: 900; letter-spacing:-0.02em; }
+
     .logo{
       width:34px; height:34px; border-radius:12px;
       background: linear-gradient(135deg, rgba(99,102,241,1), rgba(16,185,129,1));
@@ -57,6 +60,7 @@
       display:flex; align-items:center; justify-content:center;
       font-weight:900; font-size:18px; color: rgba(255,255,255,0.95);
     }
+
     .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; color: var(--muted); font-weight:600; font-size:14px; }
     .nav a{ padding: 8px 10px; border-radius:999px; }
     .nav a:hover{ background: rgba(255,255,255,0.06); color: var(--text); }
@@ -68,6 +72,7 @@
       box-shadow: var(--shadow);
       backdrop-filter: blur(14px);
     }
+
     .grid{
       margin-top: 14px;
       display:grid;
@@ -76,7 +81,6 @@
       align-items:start;
     }
 
-    /* Sidebar */
     .side{ padding: 14px; }
     .sideTitle{
       display:flex; justify-content:space-between; align-items:baseline; gap:12px;
@@ -108,6 +112,7 @@
       flex-wrap: wrap;
       padding: 0 6px 12px;
     }
+
     .chip{
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.04);
@@ -121,6 +126,7 @@
       gap: 8px;
       align-items:center;
     }
+
     .chip.active{
       background: rgba(16,185,129,0.18);
       border-color: rgba(16,185,129,0.35);
@@ -133,6 +139,7 @@
       max-height: calc(100vh - 290px);
       overflow:auto;
     }
+
     .row{
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.05);
@@ -143,11 +150,13 @@
       justify-content:space-between;
       gap: 10px;
     }
+
     .row:hover{ background: rgba(255,255,255,0.07); }
     .row.active{
       outline: 2px solid rgba(16,185,129,0.30);
       background: rgba(16,185,129,0.10);
     }
+
     .rowName{ font-weight:900; margin:0 0 4px; letter-spacing:-0.01em; }
     .rowMeta{ margin:0; color: var(--muted); font-size:12.5px; line-height:1.35; }
     .rowRight{ display:flex; flex-direction:column; align-items:flex-end; gap: 8px; }
@@ -172,7 +181,6 @@
       display:none;
     }
 
-    /* Detail */
     .detail{ overflow:hidden; }
     .heroImg{
       width:100%;
@@ -257,6 +265,7 @@
       gap: 8px;
       align-items:center;
       white-space:nowrap;
+      color: var(--text);
     }
     .favBtn.on{
       border-color: rgba(244,63,94,0.45);
@@ -294,7 +303,6 @@
     </div>
 
     <div class="grid">
-      <!-- Sidebar -->
       <aside class="card side">
         <div class="sideTitle">
           <h2>Restaurants</h2>
@@ -314,7 +322,6 @@
         <div class="list" id="list"></div>
       </aside>
 
-      <!-- Detail -->
       <main class="card detail" id="detail">
         <img id="img" class="heroImg" alt="" style="display:none;">
         <div class="detailTop">
@@ -346,153 +353,15 @@
     </div>
   </div>
 
-  <!-- Data -->
   <script src="./restaurants.js"></script>
   <script src="./utils.js"></script>
 
   <script>
-    // -------------------------
-    // Data + helpers
-    // -------------------------
-
-    // ✅ Endpoint Google Apps Script (même que sur index)
-    const DATA_URL = "https://script.google.com/macros/s/AKfycbxxARTHtrZB7r5cAxPM3pMOR4EJ0CYn9x0KdO-qYNJVYxnuWa4iQ2SLZ6sLrObculU_/exec";
-
-    // ✅ DATA = on démarre avec ce que restaurants.js met dans window.RESTAURANTS,
-    // puis on merge avec la Sheet
-    let DATA = (window.RESTAURANTS && Array.isArray(window.RESTAURANTS)) ? window.RESTAURANTS.slice() : [];
+    let DATA = Array.isArray(window.RESTAURANTS) ? window.RESTAURANTS.slice() : [];
 
     const qs = (k) => new URLSearchParams(window.location.search).get(k);
     const safe = (v, fb="—") => (v === undefined || v === null || v === "" ? fb : v);
 
-    const tagLabel = (t) => {
-      const dict = {
-        dedicated_gf: "Dédié GF",
-        brunch: "Brunch",
-        takeout: "Takeout",
-        pizza: "Pizza",
-        vegan: "Vegan",
-        wifi: "Wi-Fi",
-        happy_hour: "Happy hour"
-      };
-      return dict[t] || t;
-    };
-
-    // ✅ Convertit liens Drive (file/d/... ou open?id=...) en lien image direct
-    function normalizeImageUrl(url){
-      const u = String(url || "").trim();
-      if (!u) return "";
-
-      const m1 = u.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-      if (m1 && m1[1]) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
-
-      const m2 = u.match(/[?&]id=([^&]+)/);
-      if (u.includes("drive.google.com") && m2 && m2[1]) return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
-
-      return u;
-    }
-
-    function normalizeFromSheet(row){
-      // tags
-      let tags = [];
-      if (Array.isArray(row.tags)) tags = row.tags.map(t => String(t).trim()).filter(Boolean);
-      else if (typeof row.tags === "string") tags = row.tags.split(",").map(t => t.trim()).filter(Boolean);
-      else if (row.tags != null) tags = [String(row.tags).trim()].filter(Boolean);
-
-      // image: on couvre plusieurs noms possibles
-      const img = normalizeImageUrl(row.image || row.photo_url || row.photo || "");
-
-      return {
-        id: String(row.id || "").trim(),
-        name: String(row.name || "").trim(),
-        city: String(row.city || "").trim(),
-        neighborhood: String(row.neighborhood || "").trim(),
-        address: String(row.address || "").trim(),
-        lat: Number(row.lat || 0),
-        lon: Number(row.lon || 0),
-        score: row.score ? Number(row.score) : null,
-        scoreLabel: row.score ? String(row.score) : "—",
-        image: img,
-        note: String(row.note || "").trim(),
-        tags,
-        price: String(row.price || "").trim(),
-        website: String(row.website || "").trim(),
-        gfSafety: String(row.gfSafety || row.gf || "option")
-      };
-    }
-
-    function mergeById(base, extra){
-      const map = new Map();
-      base.forEach(r => { if (r && r.id) map.set(r.id, r); });
-      extra.forEach(r => {
-        if (!r || !r.id) return;
-        map.set(r.id, { ...(map.get(r.id) || {}), ...r });
-      });
-      return [...map.values()];
-    }
-
-    async function loadFromSheet(){
-      try{
-        const res = await fetch(`${DATA_URL}?_=${Date.now()}`, { cache: "no-store" });
-        const json = await res.json();
-        if (!Array.isArray(json)) return [];
-        return json.map(normalizeFromSheet).filter(r => r.id && r.name);
-      } catch (e){
-        console.warn("Sheet fetch failed", e);
-        return [];
-      }
-    }
-
-    // -------------------------
-    // Favorites (localStorage)
-    // -------------------------
-    const FAV_KEY = "ao_favs_v1";
-    const getFavs = () => {
-      try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]")); }
-      catch { return new Set(); }
-    };
-    const setFavs = (set) => {
-      localStorage.setItem(FAV_KEY, JSON.stringify([...set]));
-    };
-    const isFav = (id) => getFavs().has(id);
-    const toggleFav = (id) => {
-      const favs = getFavs();
-      if (favs.has(id)) favs.delete(id); else favs.add(id);
-      setFavs(favs);
-      return favs;
-    };
-
-    // -------------------------
-    // Distance (Haversine)
-    // -------------------------
-    const toRad = (d) => d * Math.PI / 180;
-    const distKm = (aLat,aLon,bLat,bLon) => {
-      const R = 6371;
-      const dLat = toRad(bLat-aLat);
-      const dLon = toRad(bLon-aLon);
-      const s1 = Math.sin(dLat/2)**2;
-      const s2 = Math.cos(toRad(aLat))*Math.cos(toRad(bLat))*Math.sin(dLon/2)**2;
-      return 2*R*Math.asin(Math.sqrt(s1+s2));
-    };
-    const fmtDist = (km) => km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(1)} km`;
-
-    let userPos = null; // {lat, lon}
-    let nearMode = false;
-
-    async function getUserPosition(){
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) return reject(new Error("no-geo"));
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-          (err) => reject(err),
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
-        );
-      });
-    }
-
-    // -------------------------
-    // DOM
-    // -------------------------
     const listEl = document.getElementById("list");
     const countEl = document.getElementById("count");
     const qEl = document.getElementById("q");
@@ -516,43 +385,59 @@
     const copyBtn = document.getElementById("copy");
     const homeLink = document.getElementById("homeLink");
 
-    // Bulletproof home link (GitHub Pages)
     homeLink.addEventListener("click", (e) => {
       e.preventDefault();
-      window.location.assign("./index.html");
+      AO.goHome();
     });
 
     let favOnly = false;
+    let userPos = null;
+    let nearMode = false;
 
     function currentId(){
       return qs("id") || (DATA[0] && DATA[0].id) || "";
     }
 
-    function buildList(activeId, query=""){
-      const q = query.trim().toLowerCase();
+    async function getUserPosition(){
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error("no-geo"));
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+          (err) => reject(err),
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+      });
+    }
+
+    function filteredList(query=""){
+      const q = AO.normalize(query);
       let list = DATA.slice();
 
-      // filter: favorites
       if (favOnly){
-        const favs = getFavs();
+        const favs = AO.getFavorites();
         list = list.filter(r => favs.has(r.id));
       }
 
-      // search
       if (q){
+        const words = AO.expandQuery(q);
         list = list.filter(r => {
-          const hay = [r.name,r.city,r.neighborhood,r.address,r.note,...(r.tags||[])].join(" ").toLowerCase();
-          return hay.includes(q);
+          const hay = AO.normalize([r.name,r.city,r.neighborhood,r.address,r.note,...(r.tags||[])].join(" "));
+          return words.every(word => hay.includes(word));
         });
       }
 
-      // distance sort if near mode
       if (nearMode && userPos){
         list = list
-          .map(r => ({
-            ...r,
-            _km: (typeof r.lat==="number" && typeof r.lon==="number") ? distKm(userPos.lat,userPos.lon,r.lat,r.lon) : null
-          }))
+          .map(r => {
+            const lat = Number(r.lat);
+            const lon = Number(r.lon);
+            return {
+              ...r,
+              _km: Number.isFinite(lat) && Number.isFinite(lon) && lat !== 0 && lon !== 0
+                ? AO.haversineKm(userPos.lat,userPos.lon,lat,lon)
+                : null
+            };
+          })
           .sort((a,b) => {
             if (a._km === null && b._km === null) return 0;
             if (a._km === null) return 1;
@@ -560,6 +445,12 @@
             return a._km - b._km;
           });
       }
+
+      return list;
+    }
+
+    function buildList(activeId, query=""){
+      const list = filteredList(query);
 
       countEl.textContent = list.length + (list.length > 1 ? " restos" : " resto");
       listEl.innerHTML = "";
@@ -590,9 +481,9 @@
 
         const d = document.createElement("div");
         d.className = "rowDist";
-        if (nearMode && userPos && typeof r.lat==="number" && typeof r.lon==="number"){
-          const km = distKm(userPos.lat,userPos.lon,r.lat,r.lon);
-          d.textContent = fmtDist(km);
+
+        if (nearMode && userPos && typeof r._km === "number"){
+          d.textContent = AO.formatDistance(r._km);
           d.style.display = "inline-flex";
         }
 
@@ -615,7 +506,7 @@
     }
 
     function updateFavUI(id){
-      const on = isFav(id);
+      const on = AO.isFavorite(id);
       favBtn.classList.toggle("on", on);
       favText.textContent = on ? "Retirer" : "Ajouter";
     }
@@ -643,41 +534,43 @@
       nameEl.textContent = safe(r.name);
       scoreEl.textContent = `⭐ ${safe(r.scoreLabel ?? r.score, "—")}`;
 
-      // meta + distance
       let extraDist = "";
-      if (nearMode && userPos && typeof r.lat==="number" && typeof r.lon==="number"){
-        const km = distKm(userPos.lat,userPos.lon,r.lat,r.lon);
-        extraDist = ` • 📍 ${fmtDist(km)}`;
+      if (nearMode && userPos){
+        const lat = Number(r.lat);
+        const lon = Number(r.lon);
+        if (Number.isFinite(lat) && Number.isFinite(lon) && lat !== 0 && lon !== 0) {
+          const km = AO.haversineKm(userPos.lat,userPos.lon,lat,lon);
+          extraDist = ` • 📍 ${AO.formatDistance(km)}`;
+        }
       }
-      metaEl.textContent = `${safe(r.city)} • ${safe(r.neighborhood, "—")} • ${safe(r.price, "—")} • ${safe(r.address)}${extraDist}`;
 
+      metaEl.textContent = `${safe(r.city)} • ${safe(r.neighborhood, "—")} • ${safe(r.price, "—")} • ${safe(r.address)}${extraDist}`;
       noteEl.textContent = safe(r.note, "");
 
-      // Image
-      const imgUrl = normalizeImageUrl(r.image || "");
-      if (imgUrl){
+      if (r.image){
         imgEl.style.display = "block";
-        imgEl.src = imgUrl;
+        imgEl.src = r.image;
         imgEl.alt = r.name || "";
         imgEl.onerror = () => { imgEl.style.display = "none"; };
       } else {
         imgEl.style.display = "none";
       }
 
-      // Tags
       tagsEl.innerHTML = "";
       (r.tags || []).forEach(t => {
         const p = document.createElement("div");
         p.className = "pill";
-        p.textContent = tagLabel(t);
+        p.textContent = AO.tagLabel(t);
         tagsEl.appendChild(p);
       });
 
-      // Google maps
-      const q = encodeURIComponent(r.address || `${r.lat},${r.lon}`);
-      gmapsEl.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+      if (r.gmaps) {
+        gmapsEl.href = r.gmaps;
+      } else {
+        const q = encodeURIComponent(r.address || `${r.lat},${r.lon}`);
+        gmapsEl.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+      }
 
-      // Website
       if (r.website){
         siteEl.style.display = "inline-flex";
         siteEl.href = r.website;
@@ -685,11 +578,10 @@
         siteEl.style.display = "none";
       }
 
-      // Fav UI
       updateFavUI(r.id);
 
-      // Share + copy
       const url = window.location.href;
+
       shareBtn.onclick = async () => {
         const shareData = { title: r.name || "Restaurant", text: "AddictOCéliaque — resto sans gluten", url };
         try{
@@ -714,150 +606,93 @@
       };
     }
 
-    // -------------------------
-    // INIT
-    // -------------------------
-    function init(){
+    function refresh(){
       const id = currentId();
-
-      // Initial list + detail (avec fallback)
-      buildList(id, "");
+      buildList(id, qEl.value || "");
       showDetail(id);
+    }
 
-      // Search
-      qEl.addEventListener("input", () => {
-        buildList(currentId(), qEl.value);
-      });
+    qEl.addEventListener("input", refresh);
 
-      // Toggle favorites filter
-      favFilter.addEventListener("click", () => {
-        favOnly = !favOnly;
-        favFilter.classList.toggle("active", favOnly);
-        buildList(currentId(), qEl.value);
+    favFilter.addEventListener("click", () => {
+      favOnly = !favOnly;
+      favFilter.classList.toggle("active", favOnly);
+      refresh();
 
-        if (favOnly && !isFav(currentId())){
-          const favs = [...getFavs()];
+      if (favOnly && !AO.isFavorite(currentId())){
+        const favs = [...AO.getFavorites()];
+        if (favs.length){
+          window.location.href = `restaurant.html?id=${encodeURIComponent(favs[0])}`;
+        }
+      }
+    });
+
+    nearMe.addEventListener("click", async () => {
+      if (!nearMode){
+        nearMe.textContent = "⏳ Localisation…";
+        try{
+          userPos = await getUserPosition();
+          nearMode = true;
+          nearMe.textContent = "📍 Autour de moi";
+          nearMe.classList.add("active");
+          refresh();
+        } catch {
+          nearMode = false;
+          userPos = null;
+          nearMe.textContent = "📍 Autour de moi";
+          nearMe.classList.remove("active");
+          alert("Impossible d’accéder à ta localisation.");
+        }
+      } else {
+        nearMode = false;
+        userPos = null;
+        nearMe.classList.remove("active");
+        refresh();
+      }
+    });
+
+    favBtn.addEventListener("click", () => {
+      const id = currentId();
+      AO.toggleFavorite(id);
+      updateFavUI(id);
+
+      if (favOnly){
+        refresh();
+        if (!AO.isFavorite(id)){
+          const favs = [...AO.getFavorites()];
           if (favs.length){
             window.location.href = `restaurant.html?id=${encodeURIComponent(favs[0])}`;
           }
         }
-      });
-
-      // Toggle near me
-      nearMe.addEventListener("click", async () => {
-        if (!nearMode){
-          nearMe.textContent = "⏳ Localisation…";
-          try{
-            userPos = await getUserPosition();
-            nearMode = true;
-            nearMe.textContent = "📍 Autour de moi";
-            nearMe.classList.add("active");
-            buildList(currentId(), qEl.value);
-            showDetail(currentId());
-          } catch {
-            nearMode = false;
-            userPos = null;
-            nearMe.textContent = "📍 Autour de moi";
-            nearMe.classList.remove("active");
-            alert("Impossible d’accéder à ta localisation (autorisation refusée ?).");
-          }
-        } else {
-          nearMode = false;
-          userPos = null;
-          nearMe.classList.remove("active");
-          buildList(currentId(), qEl.value);
-          showDetail(currentId());
-        }
-      });
-
-      // Favorite button on detail
-      favBtn.addEventListener("click", () => {
-        const id = currentId();
-        toggleFav(id);
-        updateFavUI(id);
-
-        if (favOnly){
-          buildList(id, qEl.value);
-          if (!isFav(id)){
-            const favs = [...getFavs()];
-            if (favs.length){
-              window.location.href = `restaurant.html?id=${encodeURIComponent(favs[0])}`;
-            }
-          }
-        }
-      });
-
-      // Keyboard navigation (↑ ↓)
-      document.addEventListener("keydown", (e) => {
-        if (!["ArrowUp","ArrowDown"].includes(e.key)) return;
-
-        const activeId = currentId();
-        const q = qEl.value || "";
-
-        let list = DATA.slice();
-        if (favOnly){
-          const favs = getFavs();
-          list = list.filter(r => favs.has(r.id));
-        }
-        const qq = q.trim().toLowerCase();
-        if (qq){
-          list = list.filter(r => {
-            const hay = [r.name,r.city,r.neighborhood,r.address,r.note,...(r.tags||[])].join(" ").toLowerCase();
-            return hay.includes(qq);
-          });
-        }
-        if (nearMode && userPos){
-          list = list
-            .map(r => ({
-              ...r,
-              _km: (typeof r.lat==="number" && typeof r.lon==="number") ? distKm(userPos.lat,userPos.lon,r.lat,r.lon) : null
-            }))
-            .sort((a,b) => {
-              if (a._km === null && b._km === null) return 0;
-              if (a._km === null) return 1;
-              if (b._km === null) return -1;
-              return a._km - b._km;
-            });
-        }
-
-        const idx = list.findIndex(r => r.id === activeId);
-        if (idx === -1 || list.length === 0) return;
-
-        e.preventDefault();
-        const next = (e.key === "ArrowDown")
-          ? list[Math.min(idx+1, list.length-1)]
-          : list[Math.max(idx-1, 0)];
-
-        if (next && next.id !== activeId){
-          window.location.href = `restaurant.html?id=${encodeURIComponent(next.id)}`;
-        }
-      });
-    }
-
-    // 1) rendu immédiat avec fallback
-    init();
-
-    // 2) merge + refresh quand restaurants.js a fini (si tu déclenches l'event)
-    window.addEventListener("ao:restaurants:ready", (ev) => {
-      const fromEvent = Array.isArray(ev.detail) ? ev.detail : [];
-      if (fromEvent.length){
-        DATA = mergeById(DATA, fromEvent);
-        const id = currentId();
-        buildList(id, qEl.value || "");
-        showDetail(id);
       }
     });
 
-    // 3) IMPORTANT: restaurant.html fetch aussi la Sheet (pour être autonome)
-    (async function bootSheet(){
-      const sheet = await loadFromSheet();
-      if (sheet.length){
-        DATA = mergeById(DATA, sheet);
-        const id = currentId();
-        buildList(id, qEl.value || "");
-        showDetail(id);
+    document.addEventListener("keydown", (e) => {
+      if (!["ArrowUp","ArrowDown"].includes(e.key)) return;
+
+      const activeId = currentId();
+      const list = filteredList(qEl.value || "");
+      const idx = list.findIndex(r => r.id === activeId);
+
+      if (idx === -1 || list.length === 0) return;
+
+      e.preventDefault();
+
+      const next = (e.key === "ArrowDown")
+        ? list[Math.min(idx+1, list.length-1)]
+        : list[Math.max(idx-1, 0)];
+
+      if (next && next.id !== activeId){
+        window.location.href = `restaurant.html?id=${encodeURIComponent(next.id)}`;
       }
-    })();
+    });
+
+    window.addEventListener("ao:restaurants:ready", (ev) => {
+      DATA = Array.isArray(ev.detail) ? ev.detail.slice() : [];
+      refresh();
+    });
+
+    refresh();
   </script>
 </body>
 </html>
