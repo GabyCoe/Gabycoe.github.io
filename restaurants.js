@@ -1,12 +1,11 @@
 // restaurants.js
-// Source unique: merge FALLBACK (tes restos) + Google Apps Script (Form/Sheet)
-// Expose window.RESTAURANTS et déclenche un event "ao:restaurants:ready"
+// Source unique: FALLBACK + Google Apps Script.
+// Expose window.RESTAURANTS et déclenche "ao:restaurants:ready".
 
 (function () {
   const ENDPOINT =
     "https://script.google.com/macros/s/AKfycbxxARTHtrZB7r5cAxPM3pMOR4EJ0CYn9x0KdO-qYNJVYxnuWa4iQ2SLZ6sLrObculU_/exec";
 
-  // ✅ Mets ici tes restos "historiques" (fallback)
   const FALLBACK = [
     {
       id: "arepera-du-plateau",
@@ -20,7 +19,7 @@
       scoreLabel: "9.0",
       image: "images/arepera83.jpg",
       note: "Je recommande à 100% pour la nourriture, juste un tout petit peu cher.",
-      tags: ["dedicated_gf", "vegan", "wifi", "happy_hour"],
+      tags: ["brunch", "vegan", "wifi", "happy_hour"],
       price: "$$$",
       website: "https://www.arepera.ca/",
       gfSafety: "dedicated",
@@ -81,32 +80,36 @@
   function gfToSafety(gfText) {
     const s = String(gfText || "").toLowerCase();
     if (s.includes("dédi") || s.includes("dedicated") || s.includes("100%")) return "dedicated";
-    if (s.includes("risque") || s.includes("contamination")) return "risk";
+    if (s.includes("risque") || s.includes("contamin")) return "risk";
     return "option";
   }
 
-  // ✅ Convertit un lien Drive "view" en lien image direct
-  function driveToDirect(url) {
+  function normalizeImageUrl(url) {
     const u = String(url || "").trim();
     if (!u) return "";
-    const m = u.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-    if (m && m[1]) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+
+    const m1 = u.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+    if (m1 && m1[1]) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+
+    const m2 = u.match(/[?&]id=([^&]+)/);
+    if (u.includes("drive.google.com") && m2 && m2[1]) {
+      return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+    }
+
     return u;
+  }
+
+  function safeTags(rowTags) {
+    if (Array.isArray(rowTags)) return rowTags.map(t => String(t).trim()).filter(Boolean);
+    if (typeof rowTags === "string") return rowTags.split(",").map(t => t.trim()).filter(Boolean);
+    if (rowTags == null) return [];
+    return [String(rowTags).trim()].filter(Boolean);
   }
 
   function normalizeOne(r) {
     const id = String(r.id || "").trim();
-    const lat = Number(r.lat || 0);
-    const lon = Number(r.lon || 0);
-
-    // tags: array ou string
-    let tags = [];
-    if (Array.isArray(r.tags)) tags = r.tags.map(t => String(t).trim()).filter(Boolean);
-    else if (typeof r.tags === "string") tags = r.tags.split(",").map(t => t.trim()).filter(Boolean);
-
-    // image: supporte image OU photo_url
-    const rawImg = String(r.image || r.photo_url || r.photo || "").trim();
-    const image = driveToDirect(rawImg);
+    const rawScore = r.score ?? "";
+    const scoreNumber = Number(rawScore);
 
     return {
       id,
@@ -114,49 +117,83 @@
       city: String(r.city || "").trim(),
       neighborhood: String(r.neighborhood || "").trim(),
       address: String(r.address || "").trim(),
-      lat,
-      lon,
-      score: r.score ? Number(r.score) : null,
+      lat: Number(r.lat || 0) || 0,
+      lon: Number(r.lon || 0) || 0,
+      score: Number.isFinite(scoreNumber) && rawScore !== "" ? scoreNumber : 0,
       scoreLabel: String(r.scoreLabel || r.score || "").trim(),
-      image,
+      image: normalizeImageUrl(r.image || r.photo_url || r.photo || ""),
       note: String(r.note || "").trim(),
-      tags,
+      tags: safeTags(r.tags),
       price: String(r.price || "").trim(),
       website: String(r.website || "").trim(),
-      gmaps: String(r.gmaps || "").trim(),
-      gfSafety: r.gfSafety ? String(r.gfSafety) : gfToSafety(r.gf),
+      gmaps: String(r.gmaps || r.maps || "").trim(),
+      gfSafety: r.gfSafety ? String(r.gfSafety).toLowerCase().trim() : gfToSafety(r.gf),
+      status: String(r.status || "").toLowerCase().trim(),
     };
-  }
-
-  async function fetchRestaurants(status = "approved") {
-    const url = `${ENDPOINT}?_=${Date.now()}`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
-    return data
-      .map(normalizeOne)
-      .filter(r => r.id && r.name); // on garde même si lat/lon manquent
   }
 
   function mergeById(fallback, remote) {
     const map = new Map();
-    (fallback || []).forEach(r => { if (r && r.id) map.set(r.id, r); });
+
+    (fallback || []).forEach(r => {
+      if (r && r.id && r.name) map.set(r.id, r);
+    });
+
     (remote || []).forEach(r => {
       if (!r || !r.id) return;
+
       const prev = map.get(r.id) || {};
-      map.set(r.id, { ...prev, ...r });
+
+      const merged = {
+        ...prev,
+        ...r,
+        name: r.name || prev.name || "",
+        address: r.address || prev.address || "",
+        city: r.city || prev.city || "",
+        neighborhood: r.neighborhood || prev.neighborhood || "",
+        note: r.note || prev.note || "",
+        image: r.image || prev.image || "",
+        website: r.website || prev.website || "",
+        price: r.price || prev.price || "",
+        tags: Array.isArray(r.tags) && r.tags.length ? r.tags : (prev.tags || []),
+        score: r.score || prev.score || 0,
+        scoreLabel: r.scoreLabel || prev.scoreLabel || "",
+        lat: r.lat || prev.lat || 0,
+        lon: r.lon || prev.lon || 0,
+        gfSafety: r.gfSafety || prev.gfSafety || "option",
+      };
+
+      if (merged.id && merged.name) map.set(merged.id, merged);
     });
-    return [...map.values()];
+
+    return [...map.values()].filter(r => r.id && r.name);
   }
 
-  // Expose API
-  window.AO_API = { ENDPOINT, fetchRestaurants };
+  async function fetchRestaurants(status = "approved") {
+    const url = `${ENDPOINT}?status=${encodeURIComponent(status)}&_=${Date.now()}`;
+    const res = await fetch(url, { cache: "no-store" });
 
-  // 1) rendu immédiat (fallback)
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    const data = await res.json();
+
+    if (!Array.isArray(data)) {
+      console.warn("API did not return an array:", data);
+      return [];
+    }
+
+    return data
+      .map(normalizeOne)
+      .filter(r => r.id);
+  }
+
+  window.AO_API = { ENDPOINT, fetchRestaurants };
   window.RESTAURANTS = FALLBACK.slice();
 
-  // 2) fetch + merge + event
+  window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
+    detail: window.RESTAURANTS
+  }));
+
   (async () => {
     try {
       const remote = await fetchRestaurants("approved");
@@ -167,6 +204,8 @@
       }));
     } catch (e) {
       console.warn("AO fetch failed, keep FALLBACK only", e);
+
+      window.RESTAURANTS = FALLBACK.slice();
       window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
         detail: window.RESTAURANTS
       }));
