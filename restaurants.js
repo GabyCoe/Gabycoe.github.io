@@ -79,17 +79,27 @@
 
   function gfToSafety(gfText) {
     const s = String(gfText || "").toLowerCase();
-    if (s.includes("dédi") || s.includes("dedicated") || s.includes("100%")) return "dedicated";
-    if (s.includes("risque") || s.includes("contamin")) return "risk";
+
+    if (s.includes("dédi") || s.includes("dedicated") || s.includes("100%")) {
+      return "dedicated";
+    }
+
+    if (s.includes("risque") || s.includes("contamin")) {
+      return "risk";
+    }
+
     return "option";
   }
 
   function normalizeImageUrl(url) {
     const u = String(url || "").trim();
+
     if (!u) return "";
 
     const m1 = u.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-    if (m1 && m1[1]) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+    if (m1 && m1[1]) {
+      return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+    }
 
     const m2 = u.match(/[?&]id=([^&]+)/);
     if (u.includes("drive.google.com") && m2 && m2[1]) {
@@ -100,9 +110,16 @@
   }
 
   function safeTags(rowTags) {
-    if (Array.isArray(rowTags)) return rowTags.map(t => String(t).trim()).filter(Boolean);
-    if (typeof rowTags === "string") return rowTags.split(",").map(t => t.trim()).filter(Boolean);
+    if (Array.isArray(rowTags)) {
+      return rowTags.map(t => String(t).trim()).filter(Boolean);
+    }
+
+    if (typeof rowTags === "string") {
+      return rowTags.split(",").map(t => t.trim()).filter(Boolean);
+    }
+
     if (rowTags == null) return [];
+
     return [String(rowTags).trim()].filter(Boolean);
   }
 
@@ -136,7 +153,9 @@
     const map = new Map();
 
     (fallback || []).forEach(r => {
-      if (r && r.id && r.name) map.set(r.id, r);
+      if (r && r.id && r.name) {
+        map.set(r.id, r);
+      }
     });
 
     (remote || []).forEach(r => {
@@ -147,6 +166,8 @@
       const merged = {
         ...prev,
         ...r,
+
+        // Ne jamais laisser une ligne API vide écraser un bon fallback.
         name: r.name || prev.name || "",
         address: r.address || prev.address || "",
         city: r.city || prev.city || "",
@@ -163,7 +184,9 @@
         gfSafety: r.gfSafety || prev.gfSafety || "option",
       };
 
-      if (merged.id && merged.name) map.set(merged.id, merged);
+      if (merged.id && merged.name) {
+        map.set(merged.id, merged);
+      }
     });
 
     return [...map.values()].filter(r => r.id && r.name);
@@ -171,9 +194,12 @@
 
   async function fetchRestaurants(status = "approved") {
     const url = `${ENDPOINT}?status=${encodeURIComponent(status)}&_=${Date.now()}`;
+
     const res = await fetch(url, { cache: "no-store" });
 
-    if (!res.ok) throw new Error("HTTP " + res.status);
+    if (!res.ok) {
+      throw new Error("HTTP " + res.status);
+    }
 
     const data = await res.json();
 
@@ -187,7 +213,11 @@
       .filter(r => r.id);
   }
 
-  window.AO_API = { ENDPOINT, fetchRestaurants };
+  window.AO_API = {
+    ENDPOINT,
+    fetchRestaurants
+  };
+
   window.RESTAURANTS = FALLBACK.slice();
 
   window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
@@ -197,6 +227,7 @@
   (async () => {
     try {
       const remote = await fetchRestaurants("approved");
+
       window.RESTAURANTS = mergeById(FALLBACK, remote);
 
       window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
@@ -206,6 +237,7 @@
       console.warn("AO fetch failed, keep FALLBACK only", e);
 
       window.RESTAURANTS = FALLBACK.slice();
+
       window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
         detail: window.RESTAURANTS
       }));
