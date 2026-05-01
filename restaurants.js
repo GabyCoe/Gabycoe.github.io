@@ -129,7 +129,7 @@
   }
 
   async function fetchRestaurants(status = "approved") {
-    const url = `${ENDPOINT}?status=${encodeURIComponent(status)}&_=${Date.now()}`;
+    const url = `${ENDPOINT}?_=${Date.now()}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
