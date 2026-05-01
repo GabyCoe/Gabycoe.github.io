@@ -1,7 +1,4 @@
 (function () {
-  // =========================
-  // Labels / dicts
-  // =========================
   const TAG_DICT = {
     dedicated_gf: "Dédié GF",
     brunch: "Brunch",
@@ -24,16 +21,10 @@
     risk: "#ef4444",
   };
 
-  // =========================
-  // URL
-  // =========================
   function getParam(key) {
     return new URLSearchParams(window.location.search).get(key);
   }
 
-  // =========================
-  // Tags / GF
-  // =========================
   function tagLabel(t) {
     return TAG_DICT[t] || t;
   }
@@ -46,9 +37,6 @@
     return GF_COLOR[level] || "#94a3b8";
   }
 
-  // =========================
-  // Favoris
-  // =========================
   const FAV_KEY = "ao_favorites_v1";
 
   function getFavorites() {
@@ -76,10 +64,7 @@
     return s.has(id);
   }
 
-  // =========================
-  // Géoloc (cache)
-  // =========================
-  const LOC_KEY = "ao_last_location_v1"; // {lat, lon, ts}
+  const LOC_KEY = "ao_last_location_v1";
 
   function saveLastLocation(lat, lon) {
     localStorage.setItem(LOC_KEY, JSON.stringify({ lat, lon, ts: Date.now() }));
@@ -95,9 +80,6 @@
     }
   }
 
-  // =========================
-  // Distance
-  // =========================
   function haversineKm(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const toRad = (d) => (d * Math.PI) / 180;
@@ -115,19 +97,12 @@
     return `${km.toFixed(km < 10 ? 1 : 0)} km`;
   }
 
-  // =========================
-  // Navigation home (robuste GitHub Pages)
-  // =========================
   function goHome() {
-    // ./index.html marche en racine et en sous-chemin GitHub Pages
     window.location.assign("./index.html");
   }
 
-  // =========================
-  // Search utils (recherche "intelligente")
-  // =========================
   function normalize(str = "") {
-    return str
+    return String(str || "")
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -162,32 +137,20 @@
     return [...expanded];
   }
 
-  // =========================
-  // Expose
-  // =========================
   window.AO = {
-    // url / tags
     getParam,
     tagLabel,
     gfLabel,
     gfColor,
-
-    // favorites
     getFavorites,
     saveFavorites,
     isFavorite,
     toggleFavorite,
-
-    // geoloc / distance
     saveLastLocation,
     getLastLocation,
     haversineKm,
     formatDistance,
-
-    // nav
     goHome,
-
-    // search
     normalize,
     expandQuery,
   };
