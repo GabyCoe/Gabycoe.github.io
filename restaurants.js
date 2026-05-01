@@ -4,7 +4,7 @@
 
 (function () {
   const ENDPOINT =
-    "https://script.google.com/macros/s/AKfycbxxARTHtrZB7r5cAxPM3pMOR4EJ0CYn9x0KdO-qYNJVYxnuWa4iQ2SLZ6sLrObculU_/exec";
+    "https://script.google.com/macros/s/AKfycbwEwKBTpV5QyF9wrnZSYBbWidcTADgxBpWO25nJH6jWOGIUdzyWpJercQ5G5bByDt4f/exec";
 
   const FALLBACK = [
     {
@@ -218,12 +218,14 @@
     fetchRestaurants
   };
 
+  // 1) Affiche immédiatement les restos historiques
   window.RESTAURANTS = FALLBACK.slice();
 
   window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
     detail: window.RESTAURANTS
   }));
 
+  // 2) Charge Google Sheet puis merge
   (async () => {
     try {
       const remote = await fetchRestaurants("approved");
