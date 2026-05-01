@@ -433,7 +433,7 @@
 
     async function loadFromSheet(){
       try{
-        const res = await fetch(`${DATA_URL}?status=approved&_=${Date.now()}`, { cache: "no-store" });
+        const res = await fetch(`${DATA_URL}?_=${Date.now()}`, { cache: "no-store" });
         const json = await res.json();
         if (!Array.isArray(json)) return [];
         return json.map(normalizeFromSheet).filter(r => r.id && r.name);
