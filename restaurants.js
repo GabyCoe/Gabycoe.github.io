@@ -1,10 +1,12 @@
 // restaurants.js
 // Source unique: FALLBACK + Google Apps Script.
-// Expose window.RESTAURANTS et déclenche "ao:restaurants:ready".
+// Affiche d'abord FALLBACK + cache local, puis refresh Google Sheet en arrière-plan.
 
 (function () {
   const ENDPOINT =
     "https://script.google.com/macros/s/AKfycbwEwKBTpV5QyF9wrnZSYBbWidcTADgxBpWO25nJH6jWOGIUdzyWpJercQ5G5bByDt4f/exec";
+
+  const CACHE_KEY = "ao_restaurants_cache_v2";
 
   const FALLBACK = [
     {
@@ -91,19 +93,28 @@
     return "option";
   }
 
-  function normalizeImageUrl(url) {
+  function extractDriveFileId(url) {
     const u = String(url || "").trim();
-
     if (!u) return "";
 
     const m1 = u.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-    if (m1 && m1[1]) {
-      return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
-    }
+    if (m1 && m1[1]) return m1[1];
 
     const m2 = u.match(/[?&]id=([^&]+)/);
-    if (u.includes("drive.google.com") && m2 && m2[1]) {
-      return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+    if (u.includes("drive.google.com") && m2 && m2[1]) return m2[1];
+
+    return "";
+  }
+
+  function normalizeImageUrl(url) {
+    const u = String(url || "").trim();
+    if (!u) return "";
+
+    const fileId = extractDriveFileId(u);
+
+    // Plus fiable pour afficher une image Drive sur un site public
+    if (fileId) {
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
     }
 
     return u;
@@ -167,7 +178,6 @@
         ...prev,
         ...r,
 
-        // Ne jamais laisser une ligne API vide écraser un bon fallback.
         name: r.name || prev.name || "",
         address: r.address || prev.address || "",
         city: r.city || prev.city || "",
@@ -192,6 +202,32 @@
     return [...map.values()].filter(r => r.id && r.name);
   }
 
+  function readCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed;
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCache(restaurants) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(restaurants || []));
+    } catch {}
+  }
+
+  function publish(list) {
+    window.RESTAURANTS = list;
+
+    window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
+      detail: window.RESTAURANTS
+    }));
+  }
+
   async function fetchRestaurants(status = "approved") {
     const url = `${ENDPOINT}?status=${encodeURIComponent(status)}&_=${Date.now()}`;
 
@@ -210,7 +246,7 @@
 
     return data
       .map(normalizeOne)
-      .filter(r => r.id);
+      .filter(r => r.id && r.name);
   }
 
   window.AO_API = {
@@ -218,31 +254,25 @@
     fetchRestaurants
   };
 
-  // 1) Affiche immédiatement les restos historiques
-  window.RESTAURANTS = FALLBACK.slice();
+  // 1) Affichage immédiat : fallback + cache local
+  const cachedRemote = readCache();
+  const initial = mergeById(FALLBACK, cachedRemote);
+  publish(initial);
 
-  window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
-    detail: window.RESTAURANTS
-  }));
-
-  // 2) Charge Google Sheet puis merge
+  // 2) Refresh Google Sheet en arrière-plan
   (async () => {
     try {
       const remote = await fetchRestaurants("approved");
 
-      window.RESTAURANTS = mergeById(FALLBACK, remote);
+      saveCache(remote);
 
-      window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
-        detail: window.RESTAURANTS
-      }));
+      const merged = mergeById(FALLBACK, remote);
+      publish(merged);
     } catch (e) {
-      console.warn("AO fetch failed, keep FALLBACK only", e);
+      console.warn("AO fetch failed, keep cached/fallback data", e);
 
-      window.RESTAURANTS = FALLBACK.slice();
-
-      window.dispatchEvent(new CustomEvent("ao:restaurants:ready", {
-        detail: window.RESTAURANTS
-      }));
+      const merged = mergeById(FALLBACK, readCache());
+      publish(merged);
     }
   })();
 })();
